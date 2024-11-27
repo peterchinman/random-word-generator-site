@@ -2,48 +2,71 @@
    error_reporting(E_ALL);
 	ini_set('display_errors', 1);
 
-   // TODO get values from form submission
-   $speech_part = "noun";
-   $words_to_generate = 15;
-	
-	$db = new SQLite3('dictionary.db');
+   $numberOfWords = $_GET['numberOfWords'] ?? 15;
+   $partsOfSpeech = !empty($_GET['partsOfSpeech']) ? explode(',', $_GET['partsOfSpeech']) : [];
+   $minWordLength = $_GET['minWordLength'] ?? 0;
+   $maxWordLength = $_GET['maxWordLength'] ?? 0;
 
-   $stmt = $db->prepare(
-      "SELECT json_object(
-         'word', word.word,
-         'meanings', (
-            SELECT json_group_array(
-               json_object(
-                  'definition', meaning.definition,
-                  'speech_part', meaning.speech_part,
-                  'example', meaning.example,
-                  'synonyms', (
-                        SELECT json_group_array(synonym.synonym)
-                        FROM synonym
-                        WHERE synonym.meaning_id = meaning.id
-                  )
+   // construct partsOfSpeech query
+   $partsOfSpeechQuery = "";
+   if ($partsOfSpeech){
+      $partsOfSpeechQuery = 'AND speech_part IN (';
+      foreach ($partsOfSpeech as $part){
+         $partsOfSpeechQuery .= '"' . $part . '",';
+      }
+      $partsOfSpeechQuery = rtrim($partsOfSpeechQuery, ',');
+      $partsOfSpeechQuery .= ')';
+   }
+   
+
+   // minWordLengthQuery
+   $minWordLengthQuery = "";
+   if ($minWordLength > 0 && $minWordLength < 26) {
+      $minWordLengthQuery .= "AND length(word.word) > $minWordLength";
+   }
+   // maxWordLengthQuery
+   $maxWordLengthQuery = "";
+   if ($maxWordLength > 0 && $maxWordLength < 26) {
+      $maxWordLengthQuery .= "AND length(word.word) < $maxWordLength";
+   }
+
+   // write the query with sting interpolation
+   $query = "SELECT json_object(
+      'word', word.word,
+      'meanings', (
+         SELECT json_group_array(
+            json_object(
+               'definition', meaning.definition,
+               'speech_part', meaning.speech_part,
+               'example', meaning.example,
+               'synonyms', (
+                     SELECT json_group_array(synonym.synonym)
+                     FROM synonym
+                     WHERE synonym.meaning_id = meaning.id
                )
             )
-            FROM meaning
-            WHERE meaning.word_id = word.id
          )
-      ) as words
-      FROM word
-      JOIN meaning on word.id = meaning.word_id
-      WHERE 1 = 1
-      AND speech_part = :speech_part
-      -- only includes single words
-      -- TODO make this a setting
-      AND word NOT LIKE '% %'
-      GROUP BY word.id
-      ORDER BY random()
-      LIMIT :limit
-      "
-   );
+         FROM meaning
+         WHERE meaning.word_id = word.id
+      )
+   ) as words
+   FROM word
+   JOIN meaning on word.id = meaning.word_id
+   WHERE 1 = 1
+   $partsOfSpeechQuery
+   $minWordLengthQuery
+   $maxWordLengthQuery
+   -- only includes single words
+   -- TODO make this a setting
+   AND word NOT LIKE '% %'
+   GROUP BY word.id
+   ORDER BY random()
+   LIMIT $numberOfWords
+   ";
+	$db = new SQLite3('dictionary.db');
 
-   $stmt->bindValue(':speech_part', $speech_part, SQLITE3_TEXT);
-   $stmt->bindValue(':limit', $words_to_generate, SQLITE3_TEXT);
-   $results = $stmt->execute();
+   
+   $results = $db->query($query);
 
    $response = [];
    while ($row = $results->fetchArray(SQLITE3_ASSOC)) {

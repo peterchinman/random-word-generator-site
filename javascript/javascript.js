@@ -1,22 +1,81 @@
+// FORM SUBMIT LOGIC
 
-// MAIN PAGE LOGIC
+const $form = document.querySelector('form');
+$form.addEventListener('click', (event) => {
+   // GENERATE click
+   if (event.target.matches('#generate')) {
+      // don't submit the form!
+      event.preventDefault();
+      
+      // get number of words
+      let numberOfWords = 0;
 
-fetch('/get_words.php')
-   .then(response => response.json())
-   .then(data => {
-      console.log(data); // Inspect the array of words and meanings
-      data.forEach(item => {
-         console.log(`Word: ${item.word}`);
-         item.meanings.forEach((meaning, index) => {
-            console.log(`defintion ${index}: ${meaning.definition}`);
-            console.log(`example ${index}: ${meaning.example}`)
-            console.log(`speech_part ${index}: ${meaning.speech_part}`)
-            console.log(`synonyms ${index}: ${meaning.synonym}`)
-         });
-      });
-      processRandomWordData(data);
-   })
-   .catch(error => console.error('Error fetching data:', error));
+      const numberCheckboxes = $form.querySelectorAll('input[name="number-words"]');
+      numberCheckboxes.forEach((checkbox) => {
+         if (checkbox.checked) {
+            numberOfWords = checkbox.value;
+         }
+      })
+      if (!numberOfWords) {
+         // TODO error message "must select number of words"
+      }
+
+      // get parts of speech
+      let partsOfSpeech = []; // e.g ["noun", "verb", "adj", "adv"]
+      const partsOfSpeechCheckboxes = $form.querySelectorAll('input[name="parts-of-speech"]');
+      partsOfSpeechCheckboxes.forEach((checkbox) => {
+         if (checkbox.checked) {
+            partsOfSpeech.push(checkbox.value);
+         }
+      })
+      
+      // get Word Length
+      minWordLength = $form.querySelector('input[name="min-word-length"]').value;
+      maxWordLength = $form.querySelector('input[name="max-word-length"]').value;
+
+      getRandomWords(numberOfWords, partsOfSpeech, minWordLength, maxWordLength);
+   }
+})
+
+function getRandomWords(numberOfWords, partsOfSpeech, minWordLength, maxWordLength) {
+   // Construct query parameters
+   const queryParams = new URLSearchParams({ 
+      numberOfWords: numberOfWords,
+      partsOfSpeech: partsOfSpeech.join(','),
+      minWordLength: minWordLength,
+      maxWordLength: maxWordLength
+   });
+
+   // Fetch data from the server
+   fetch(`get_words.php?${queryParams.toString()}`)
+      .then(response => {
+         if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+         }
+         return response.json();
+      })
+      .then(data => {
+         console.log(data); 
+
+         // Example: Logging each word and its meanings
+         // data.forEach(item => {
+         //    console.log(`Word: ${item.word}`);
+         //    item.meanings.forEach((meaning, index) => {
+         //       console.log(`Definition ${index}: ${meaning.definition}`);
+         //       console.log(`Example ${index}: ${meaning.example}`);
+         //       console.log(`Speech part ${index}: ${meaning.speech_part}`);
+         //       console.log(`Synonyms ${index}: ${meaning.synonyms}`);
+         //    });
+         // });
+
+         // Pass the fetched data to another function for further processing
+         processRandomWordData(data);
+      })
+      .catch(error => console.error('Error fetching data:', error));
+}
+
+
+
 
 // THE FOLLOWING CHUNK sets the FILTERS to auto-open if the page is wide, otherwise, auto-closed
 
@@ -32,6 +91,8 @@ function openFilters() {
 openFilters();
 window.addEventListener('resize', openFilters)
 
+
+// THIS EVENT LISTENER CONTROLS THE .word-sections sections, #generated-words and #saved-words
 
 document.addEventListener("DOMContentLoaded", function() {
    // for testing:
@@ -72,36 +133,45 @@ document.addEventListener("DOMContentLoaded", function() {
          panelCloseOut(event.target.closest('definition-panel'));
       }
       
-      // click on panel bookmark
+      // click on definition panel bookmark
       if (event.target.matches('.bookmark, .bookmark *')) {
-         // need to record that the word is saved. in... sessionStorage?
-         // (which means that when we generate the Defintion Panel we also need to check if the word is currently saved)
 
          let wordName = event.target.closest('definition-panel').dataset.word;
-         // note: this goes wider in scope and then back down because of ambiguity of what element exactly will be clicked, the div or the path
+         // note: this goes wider in scope and then back down because of ambiguity of what element exactly will be clicked, the div or the svg path
          let $bookmark = event.target.closest('.tools').querySelector('.bookmark');
          // get savedWords from session
          let savedWords = JSON.parse(sessionStorage.getItem('savedWords')) || [];
          
-         // is the word already bookmarked?
+         // REMOVE BOOKMARK
+         //  remove word from saved words list and deactivate the bookmark
          // TODO we need to do error catching for trying to add the same word to the list multiple times
          if ($bookmark.classList.contains('active')) {
-            // if so we want to remove the wordName
             savedWords = savedWords.filter(word => word.name !== wordName);
             // then deactivate bookmark
             $bookmark.classList.remove('active');
+            // if we are in the saved words panel we'll also want to deactive the corresponding bookmark in the #generate-words panel
+            if(event.target.closest('section').id == "saved-words") {
+               document.querySelector('#generated-words').querySelectorAll('word-tile').forEach((wordTile) => {
+                  if (wordTile.dataset.word == wordName) {  
+                     wordTile.querySelector('.bookmark').classList.remove('active');
+                  }
+               })
+            }
          }
-         // word not already saved!
+         // SAVE THE WORD
          else {
+            // activate bookmark
             $bookmark.classList.add('active');
-            // create word object
+
+            
             let $wordTile = event.target.closest('word-tile');
             // create a deactivated clone
             let $clone = $wordTile.cloneNode(true);
             $clone.classList.remove('selected');
             $clone.querySelector('definition-panel').classList.remove('active');
+            // create word object to save in Session storage
             let wordObject = {'name': wordName, 'html' : $clone.outerHTML};
-            // add wordObject
+            // add this wordObject to our savedWords
             savedWords.push(wordObject);
             // update bookmarkClassList
          }
@@ -114,14 +184,20 @@ document.addEventListener("DOMContentLoaded", function() {
          }
          // if we're in #saved-words, we want to wait until the panel closes to update #saved-words
          else {
-            console.log("we are in saved-words");
+            console.log("You clicked on the bookmark icon from inside saved-words");
+
          }
       }
 
-      // TODO this doesn't deactiavte teh bookmark on words in our word-list
+      // TODO this doesn't deactiavte the bookmark on words in our word-list
       if (event.target.matches('#clear-saved-words')) {
          sessionStorage.removeItem('savedWords');
          updateSavedWords();
+         $bookmarks = document.querySelectorAll('.bookmark');
+         $bookmarks.forEach((bookmark) => {
+            bookmark.classList.remove('active');
+         })
+
       }
    })
 
@@ -155,26 +231,61 @@ function panelCloseOut($panel){
 }
 
 function updateSavedWords() {
-   savedWords = JSON.parse(sessionStorage.getItem('savedWords')) || [];
-   // remove all current children
-   let $savedWordsList = document.querySelector('#saved-words-list');
-   $savedWordsList.innerHTML = "";
+   console.log("updateSavedWords")
    
-   savedWords.forEach(function(word) {
-      $savedWordsList.insertAdjacentHTML('beforeend', word.html);
+   const sessionSavedWordObjects = JSON.parse(sessionStorage.getItem('savedWords')) || [];
+   const sessionSavedWordNames = Array.from(sessionSavedWordObjects, sessionSavedWordObjects => sessionSavedWordObjects.name);
+
+   // update "empty" class on the Section
+   const $savedWordsSection = document.querySelector('#saved-words');
+   if (sessionSavedWordObjects.length == 0) {
+      $savedWordsSection.classList.add('empty');
+   }
+   else {
+      $savedWordsSection.classList.remove('empty');
+   }
+
+   // compare current wordTiles to our list of sessionSavedWordNames
+   // remove any current wordTiles that don't match
+   let $wordTiles = $savedWordsSection.querySelectorAll('word-tile');
+   let $currentTileWordNames = [];
+   $wordTiles.forEach((wordTile) => {
+      // if this word-tile is not in our saved session words, we change the class to animate it and then remove it
+      if (!sessionSavedWordNames.includes(wordTile.dataset.word)) {
+         wordTile.classList.add('removed');
+         wordTile.addEventListener('transitionend', () => {
+            console.log("transition end")
+            wordTile.remove();
+         })
+      }
+      else {
+         $currentTileWordNames.push(wordTile.dataset.word)
+      }
+   })
+
+   // add any new elements from saveWords to our savedWordsList
+   const $savedWordsList = document.querySelector('#saved-words-list');
+   sessionSavedWordObjects.forEach(function(word) {
+      if (!$currentTileWordNames.includes(word.name)){
+         $savedWordsList.insertAdjacentHTML('beforeend', word.html);
+      }
    })
 }
 
 function processRandomWordData(data) {
+   // Empty currrent word-list
+   document.querySelector('#generated-words-list').innerHTML="";
    // CREATE WORD TILES FOR EACH WORD IN OUR DATA
    data.forEach(function(word) {
       createWordTileAndDefinitionPanel(word);
    })
 
    // Get number of words for section heading
-   let numberOfWords = pretendData.words.length;
+   let numberOfWords = data.length;
    document.getElementById('number-of-words').textContent = numberOfWords;
 
+   // If it was empty it's not anymore
+   document.querySelector('#generated-words').classList.remove('empty')
 }
 
 // Function to create a word tile from a word
@@ -231,13 +342,6 @@ function createHTMLDefinitionList(meanings){
 
 function createDefinitionPanel(word) {
    
-   // // first check if there is already an open defintion panel
-   // let definitionPanel = document.querySelector('definition-panel');
-   // if (definitionPanel) {
-   //    definitionPanel.remove();
-   // }
-
-
    // generate the HTML for the definition List
    let definitionList = createHTMLDefinitionList(word.meanings);
 

@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -46,8 +44,8 @@
 					<legend>Parts of Speech</legend>
 					<label>noun<input type="checkbox" name="parts-of-speech" value="noun"></label>
 					<label>verb<input type="checkbox" name="parts-of-speech" value="verb"></label>
-					<label>adj<input type="checkbox" name="parts-of-speech" value="adj"></label>
-					<label>adv<input type="checkbox" name="parts-of-speech" value="adv"></label>
+					<label>adj<input type="checkbox" name="parts-of-speech" value="adjective"></label>
+					<label>adv<input type="checkbox" name="parts-of-speech" value="adverb"></label>
 				</fieldset>
 				<fieldset class="min-max">
 					<legend>Word Length</legend>
@@ -92,7 +90,7 @@
 	</form>
 
 	<div id="results">
-		<section class="word-sections" id="generated-words">
+		<section class="word-sections empty" id="generated-words">
 			<inner-column>
 				<h2 class="attention-voice"><span id="number-of-words"></span> Random Words</h2>
 				<word-list id="generated-words-list">
@@ -101,7 +99,7 @@
 				<p>click on a word for a definition</p>
 			</inner-column>
 		</section>
-		<section class="word-sections" id="saved-words">
+		<section class="word-sections empty" id="saved-words">
 			<inner-column>
 				<div class="upper-part">
 					<h2 class="loud-voice">Saved Words</h2>
