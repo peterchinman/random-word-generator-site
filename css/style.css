@@ -109,7 +109,7 @@ form {
 			&:has(input[type="checkbox"]:checked) {
 
 				&::before {
-					content: url(/static/checkmark.svg);
+					content: url(../static/checkmark.svg);
 					display: flex;
 					justify-content: center;
 					width: 8px;
@@ -307,7 +307,6 @@ button {
 	transition: transform .3s ease-out, visibilty 0s;
 }
 #saved-words.empty{
-	transform: translateY(+100vh);
 	visibility: hidden;
 	/* display: none; */
 	/* this is for the transition as it disappears */
@@ -315,7 +314,6 @@ button {
 	
 }
 #generated-words.empty{
-	transform: translateY(-100vh);
 	/* this is for the transition as it disappears */
 	transition: transform 1s ease-in .5s, visibility 0s linear 3s;
 	visibility: hidden;
@@ -570,6 +568,14 @@ definition-panel {
 		}
 		
 	}
+
+	#saved-words.empty{
+		transform: translateY(+100vh);
+
+		
+	}
+	#generated-words.empty{
+		transform: translateY(-100vh);
 
 	
 
