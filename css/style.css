@@ -779,12 +779,12 @@ definition-panel {
 			#clear-saved-words{
 				background-color: var(--button-2-bg);
 				color: var(--button-2-text);
-				transition: background-color var(--color-transition), color var(--color-transition);
+				/* transition: background-color var(--color-transition), color var(--color-transition); */
 			}
 			#copy-saved-words {
 				background-color: var(--button-1-bg);
 				color: var(--button-1-text);
-				transition: background-color var(--color-transition), color var(--color-transition);
+				/* transition: background-color var(--color-transition), color var(--color-transition); */
 			}
 			
 			button {
@@ -827,14 +827,14 @@ definition-panel {
 		display: grid;
 		/* TODO: this could be fine-tuned a little better */
 		
-		max-width: 1600px;
+		max-width: 2000;
 		/* disgustingly complicated */
 		/* The gist is: left-column starts at 400, gains 50% of all width after 1020, maxes out at 600, right column attempts to account for all the difference */
 		/* right column math: */
 		/* minmax( min: (get the width of main which is either 100vw or max-width) - grid_gap - twice_the_wide_margins - value_of_left_column) */
 		grid-template-columns:
 			min(calc(400px + (100vw - 1020px) * .5), 600px)
-			calc(min(100vw, 1600px) - min(3vw, 6rem) - min(calc(400px + (100vw - 1020px) * .5), 600px));
+			calc(min(100vw, 2000px) - min(3vw, 6rem) - min(calc(400px + (100vw - 1020px) * .5), 600px));
 		grid-template-rows: min-content auto;
 		column-gap: min(3vw, 6rem);
 		margin-inline: auto;
@@ -869,14 +869,18 @@ definition-panel {
 		grid-column: 1 / span 2;
 		display: grid;
 		grid-template-columns: subgrid;
-		overflow: hidden;
+		overflow-y: hidden;
+		overflow-x: visible;
 	}
 
 	form {
 		grid-column: 1;
 		padding-left: var(--wide-margin);
+		padding-right: 5px;
 		height: 100%;
-		overflow: scroll;
+		overflow-y: scroll;
+		
+
 	}
 
 
@@ -906,5 +910,94 @@ definition-panel {
 }
 
 
+@media (min-width: 2000px) {
+	body {
+		
+		max-width: 3600px;
+		/* disgustingly complicated */
+		/* The gist is: left-column starts at 400, gains 50% of all width after 1020, maxes out at 600, right column attempts to account for all the difference */
+		/* right column math: */
+		/* minmax( min: (get the width of main which is either 100vw or max-width) - grid_gap - twice_the_wide_margins - value_of_left_column) */
+		grid-template-columns:
+			.2fr 400px 1fr 1fr .2fr;
+	}
 
+	header {
+		grid-column: 1 / span 5;
+		display: grid;
+		grid-template-columns: subgrid;
+
+		inner-column {
+			grid-column: 1 / span 5;
+			display: grid;
+			grid-template-columns: subgrid;
+
+			.title {
+				grid-column: 2;
+			}
+		}
+		
+
+		.topbar {
+			grid-column: 1 / span 5;
+			display: grid;
+			grid-template-columns: subgrid;
+
+			inner-column {
+				grid-column: 1 / span 5;
+				display: grid;
+				grid-template-columns: subgrid;
+
+				.option-sliders {
+					grid-column: 1 / span 5;
+					display: grid;
+					grid-template-columns: subgrid;
+
+					.option-slider:first-child {
+						grid-column: 2;
+					}
+					.option-slider:last-child {
+						grid-column: 4;
+						justify-self: end;
+					}
+				}
+			}
+
+		}
+	}
+
+	main {
+		grid-column: 2 / span 3;
+	}
+
+	form {
+		grid-column: 1
+	}
+
+	#results {
+		grid-column: 2 / span 2;
+		display: grid;
+		grid-template-columns: subgrid;
+
+		#generated-words {
+			
+			grid-column: 1 / span 1;
+		}
+
+		#saved-words {
+			grid-column: 3 / span 1;
+		}
+
+		.word-sections {
+			max-width: 30vw;
+			height: 75%;
+		}
+
+		.word-sections + .word-sections {
+			margin-top: 0rem;
+		}
+	}
+
+
+}
 
