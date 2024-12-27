@@ -13,11 +13,34 @@
 	<meta property="og:image" content="[[Insert Absolute Path]]">
 
 	<link href="css/style.css" rel="stylesheet">
+	
 </head>
 
-<body>
+<body class="cute light">
 
 <header>
+	<div class="topbar">
+		<inner-column>
+			<ul class="option-sliders">
+					<li class="option-slider">
+						<span id="light">light</span>
+						<label class="switch-container">
+							<input type="checkbox" id="light-dark" aria-describedby="light dark" />
+							<div class="slider round"></div>
+						</label>
+						<span id="dark">dark</span>
+					</li>
+					<li class="option-slider">
+						<span id="cute">cute</span>
+						<label class="switch-container">
+							<input type="checkbox" id="cute-serious" aria-describedby="cute serious"/>
+							<div class="slider round"></div>
+						</label>
+						<span id="serious">serious</span>
+					</li>
+			</ul>
+		</inner-column>
+	</div>
 <inner-column>
 	<h1 class="title">Random Word Generator</h1>
 </inner-column>

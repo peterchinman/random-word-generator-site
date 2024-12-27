@@ -18,21 +18,25 @@
 	--neutral-1000:	#000000;
 
 	
-	/* COLORS */
-	--bg: var(--neutral-0);
-	--bg-color-2: var(--neutral-50);
+	/* MONOCHROME COLORS */
+	--bg-1: var(--neutral-0);
+	--bg-2: var(--neutral-50);
 	--ink: var(--neutral-1000);
 	--border: var(--neutral-600);
 	--drop-shadow: var(--neutral-400);
 	--word-tile: var(--neutral-50);
 	--word-tile-selected: var(--neutral-600);
 	--word-tile-selected-text: var(--neutral-100);
-	--accent-1: var(--neutral-0);
-	--accent-2: var(--neutral-200);
+	--button-1-bg: var(--neutral-0);
+	--button-2-bg: var(--neutral-200);
 	--option-bg: var(--neutral-0);
 	--option-selected-bg: var(--neutral-200);
 	--panel-bg: var(--neutral-50);
 	--subdued-ink: var(--neutral-500);
+
+	--color-transition: .2s;
+	--slider-width: 1.5rem;
+
 
 	--word-list-gap: 12px;
 	--border-radius-small: 5px;
@@ -44,12 +48,185 @@
 
 }
 
+body.serious.light{
+	--bg-1: #EEE8D5;
+	--bg-2: #FAF5E5;
+	--middle-tone: #94A1A1;
+	--subdued-ink: #586E75;
+	--ink: #073643;
+
+	--topbar-text: var(--ink);
+	--topbar-text: var(--subdued-ink);
+	--slider: var(--bg-1);
+	--slider-bg: var(--bg-2);
+
+	--border: var(--ink);
+	--drop-shadow: var(--middle-tone);
+	--word-sections-text: var(--ink);
+	--word-tile: var(--bg-2);
+	--word-tile-text: var(--ink);
+	--word-tile-selected: var(--ink);
+	--word-tile-selected-text: var(--bg-2);
+	/* --button-1 Generate button */
+	--button-1-bg: var(--bg-2);
+	--button-1-text: var(--ink);
+	/* --button-2 Reset button */
+	--button-2-bg: var(--subdued-ink);
+	--button-2-text: var(--bg-1);
+	--option-bg: var(--bg-2);
+	--option-text: var(--ink);
+	--option-selected-bg: var(--ink);
+	--option-selected-text: var(--bg-2);
+	--checkmark-bg: var(--bg-2);
+	--panel-bg: var(--bg-2);
+	--bookmark-label: var(--subdued-ink);
+	--bookmark-bg: var(--middle-tone);
+	--bookmark-active-bg: var(--ink);
+	
+	
+
+	--box-shadow-small: 5px 5px var(--drop-shadow);
+	--box-shadow-big: 10px 10px var(--drop-shadow);
+}
+
+body.serious.dark{
+	--bg-1: #002B37;
+	--bg-2: #083F4E;
+	--middle-tone: #586E75;
+	--subdued-ink: #94A1A1;
+	--ink: #FDF6E3;
+	--accent: #6C71C4;
+
+	--topbar-text: var(--ink);
+	--topbar-text: var(--subdued-ink);
+	--slider: var(--bg-1);
+	--slider-bg: var(--bg-2);
+
+	--border: var(--middle-tone);
+	--drop-shadow: var(--middle-tone);
+	--word-sections-text: var(--ink);
+	--word-tile: var(--bg-2);
+	--word-tile-text: var(--ink);
+	--word-tile-selected: var(--ink);
+	--word-tile-selected-text: var(--bg-2);
+	/* --button-1 Generate button */
+	--button-1-bg: var(--accent);
+	--button-1-text: var(--ink);
+	/* --button-2 Reset button */
+	--button-2-bg: var(--subdued-ink);
+	--button-2-text: var(--bg-1);
+	--option-bg: var(--bg-1);
+	--option-text: var(--ink);
+	--option-selected-bg: var(--accent);
+	--option-selected-text: var(--ink);
+	--input-field: var(--bg-1);
+	--checkmark-bg: var(--bg-1);
+	--panel-bg: var(--bg-1);
+	--bookmark-label: var(--subdued-ink);
+	--bookmark-bg: var(--bg-1);
+	--bookmark-active-bg: var(--accent);
+
+	--box-shadow-small: 5px 5px var(--drop-shadow);
+	--box-shadow-big: 10px 10px var(--drop-shadow);
+}
+
+body.cute.light{
+	--bg-1: #FDF7E7;
+	--bg-2: #F7EBE4;
+	--middle-tone: #E7C2AC;
+	--subdued-ink: #3F5A62;
+	--ink: #002B37;
+	--accent: #FFED94;
+
+	--topbar-text: var(--ink);
+	--topbar-text: var(--subdued-ink);
+	--slider: var(--bg-1);
+	--slider-bg: var(--bg-2);
+
+	--border: var(--ink);
+	--drop-shadow: var(--middle-tone);
+	--word-sections-text: var(--ink);
+	--word-tile: var(--bg-2);
+	--word-tile-text: var(--ink);
+	--word-tile-selected: var(--accent);
+	--word-tile-selected-text: var(--ink);
+	/* --button-1 Generate button */
+	--button-1-bg: var(--accent);
+	--button-1-text: var(--ink);
+	/* --button-2 Reset button */
+	--button-2-bg: var(--bg-1);
+	--button-2-text: var(--subdued-ink);
+	--option-bg: var(--bg-1);
+	--option-text: var(--ink);
+	--option-selected-bg: var(--accent);
+	--option-selected-text: var(--ink);
+	--input-field: var(--bg-1);
+	--checkmark-bg: var(--bg-1);
+	--panel-bg: var(--bg-2);
+	--bookmark-label: var(--subdued-ink);
+	--bookmark-bg: var(--bg-2);
+	--bookmark-active-bg: var(--accent);
+
+	--box-shadow-small: 5px 5px var(--drop-shadow);
+	--box-shadow-big: 10px 10px var(--drop-shadow);
+
+	#reset {
+		border: 1px solid var(--subdued-ink);
+	}
+}
+
+body.cute.dark{
+	--bg-1: #506CE1;
+	--bg-2: #E0E1F7;
+	--subdued-ink: #637BE4;
+	--ink: #2C4FDB;
+	--accent: #F9D383;
+
+	--topbar-text: var(--bg-2);
+	--slider: var(--bg-1);
+	--slider-bg: var(--bg-2);
+
+	--border: var(--ink);
+	--drop-shadow: var(--ink);
+	--word-sections-text: var(--bg-2);
+	--word-tile: var(--bg-2);
+	--word-tile-text: var(--ink);
+	--word-tile-selected: var(--accent);
+	--word-tile-selected-text: var(--ink);
+	/* --button-1 Generate button */
+	--button-1-bg: var(--accent);
+	--button-1-text: var(--ink);
+	/* --button-2 Reset button */
+	--button-2-bg: var(--bg-2);
+	--button-2-text: var(--subdued-ink);
+	--option-bg: var(--bg-2);
+	--option-text: var(--ink);
+	--option-selected-bg: var(--ink);
+	--option-selected-text: var(--bg-2);
+	--input-field: var(--bg-2);
+	--checkmark-bg: var(--bg-2);
+	--panel-bg: var(--bg-2);
+	--bookmark-label: var(--subdued-ink);
+	--bookmark-bg: var(--bg-2);
+	--bookmark-active-bg: var(--accent);
+
+	--box-shadow-small: 5px 5px var(--drop-shadow);
+	--box-shadow-big: 10px 10px var(--drop-shadow);
+
+	#reset {
+		box-shadow: 5px 5px var(--subdued-ink);
+		border: 1px solid var(--subdued-ink);
+	}
+}
+
 body {
-	background-color: var(--bg-color-2);
+	background-color: var(--bg-2);
 	font-family: "Roboto Mono", monospace;
 	height: 100vh;
 	display: flex;
 	flex-direction: column;
+	color: var(--ink);
+	transition: background-color var(--color-transition), color var(--color-transition);
 }
 
 inner-column {
@@ -60,7 +237,82 @@ inner-column {
 }
 
 header {
-	padding-block: 3rem;
+	/* padding-block: 0rem; */
+	.topbar {
+		background-color: var(--bg-1);
+		padding-block: .5rem;
+		color: var(--topbar-text);
+		transition: background-color var(--color-transition), color var(--color-transition);
+
+		.option-sliders {
+			display: flex;
+			justify-content: space-between;
+			/* align-items: center; */
+			font-size: .8rem;
+
+			.option-slider {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+
+				.switch-container {
+					display: inline-block;
+					height: calc(var(--slider-width) + 8px);
+					width: calc(var(--slider-width) * 2 + 8px);
+					position: relative;
+				 }
+				 
+				 .switch-container input {
+					display:none;
+				 }
+				 
+				 .slider {
+					background-color: var(--slider-bg);
+					bottom: 0;
+					cursor: pointer;
+					left: 0;
+					position: absolute;
+					right: 0;
+					top: 0;
+					transition: background-color var(--color-transition), all .4s;
+				 }
+				 
+				 .slider:before {
+					background-color: var(--slider);
+					bottom: 4px;
+					content: "";
+					height: var(--slider-width);
+					aspect-ratio: 1/1;
+					left: 4px;
+					position: absolute;
+					transition: .4s;
+				 }
+				 
+				 input:checked + .slider {
+					background-color: var(--);
+				 }
+				 
+				 input:checked + .slider:before {
+					transform: translateX(100%);
+				 }
+				 
+				 .slider.round {
+					border-radius: 34px;
+				 }
+				 
+				 .slider.round:before {
+					border-radius: 50%;
+				 }
+			}
+
+			
+		}
+	}
+	
+
+	.title {
+		padding-block: 3rem;
+	}
 }
 
 main {
@@ -96,6 +348,8 @@ form {
 			border-radius: 30px;
 			padding: 11.5px 20px;
 			background-color: var(--option-bg);
+			color: var(--option-text);
+			transition: background-color var(--color-transition), color var(--color-transition), border var(--color-transition);
 			position: relative;
 
 			input {
@@ -104,23 +358,42 @@ form {
 
 			&:has(input:checked) {
 				background-color: var(--option-selected-bg);
+				color: var(--option-selected-text);
+				transition: background-color var(--color-transition), color var(--color-transition);
 			}
 
 			&:has(input[type="checkbox"]:checked) {
 
 				&::before {
-					content: url(../static/checkmark.svg);
+					/* content: url(../static/checkmark.svg); */
+					/* instead of SVG, just use font... */
+					content: '✓';
+					font-family: sans-serif;
+					font-weight: 100;
+					font-size: .7rem;
+					color: var(--ink);
+
+					/* trying mask solution for changing stroke color */
+					/* but it doesn't let you set a background on this pseudo-element, separately */
+					/* -webkit-mask: url(../static/checkmark.svg);
+					mask: url(../static/checkmark.svg);
+					-webkit-mask-size: cover;
+					background: red;
+  					mask-size: cover; */
+				
 					display: flex;
 					justify-content: center;
+					align-items: center;
 					width: 8px;
 					position: absolute;
 					right: 0px;
 					bottom: 0px;
 					width: 16px;
 					height: 16px;
-					background-color: var(--bg-color-2);
+					background-color: var(--checkmark-bg);
 					border-radius: 50%;
 					border: 1px solid var(--border);
+					transition: background-color var(--color-transition), color var(--color-transition), border var(--color-transition);
 					
 				}
 			}
@@ -167,6 +440,11 @@ form {
 			width: fit-content;
 			transform: rotate(0);
 			transition: .25s transform ease;
+
+			path {
+				stroke: var(--ink);
+				transition: stroke var(--color-transition);
+			}
 		}
 		
 
@@ -197,13 +475,22 @@ form {
 				border: 1px solid var(--border);
 				border-radius: var(--border-radius-small);
 				background-color: var(--option-bg);
+				color: var(--option-text);
+				transition: background-color var(--color-transition), color var(--color-transition), border var(--color-transition);
 
 				display: flex;
 				justify-content: center;
 				align-items: center;
 
+				svg path {
+					stroke: var(--ink);
+					transition: stroke var(--color-transition);
+				}
+
 				&:hover {
 					background-color: var(--option-selected-bg);
+					color: var(--option-selected-text);
+					transition: background-color var(--color-transition), color var(--color-transition);
 				}
 			}
 			label {
@@ -213,13 +500,14 @@ form {
 				gap: .5rem;
 				input {
 					all: unset;
-					background-color: var(--bg);
+					background-color: var(--input-field);
 					font-family: "Roboto Mono", monospace;
 					text-align: center;
 					border: 1px solid var(--border);
 					height: 44px;
 					width: 44px; 
 					border-radius: var(--border-radius-small);
+					transition: background-color var(--color-transition), border var(--color-transition);
 				}
 
 				/* Chrome, Safari, Edge, Opera */
@@ -250,17 +538,21 @@ form {
 		}
 
 		
-
+		#generate {
+			background-color: var(--button-1-bg);
+			color: var(--button-1-text);
+		}
 		#reset {
 
-			background-color: var(--accent-2);
+			background-color: var(--button-2-bg);
+			color: var(--button-2-text);
+		
 		}
 
 		#reset:hover {
 			transform: translate(5px, 5px);
 			box-shadow: 0 0 var(--drop-shadow);
 			/* background-color: var(--border); */
-			/* color: var(--accent-2); */
 		}
 	}
 }
@@ -276,17 +568,17 @@ button {
 	display: flex;
 	justify-content: center;
 	border-radius: var(--border-radius-small);
-	background-color: var(--accent-1);
+	background-color: var(--button-2-bg);
+	color: var(--button-2-text);
+	transition: background-color var(--color-transition), color var(--color-transition), box-shadow var(--color-transition), transform var(--color-transition);
 
 
-	transition: .25s ease;
 
 	&:hover {
 		transform: translate(5px, 5px);
 		box-shadow: 0 0 var(--drop-shadow);
 		/* background-color: var(--option-selected-bg); */
-		/* color: var(--accent-2); */
-		/* color: var(--bg-color-2); */
+		/* color: var(--bg-2); */
 		/* font-weight: 900; */
 		/* letter-spacing: 3px; */
 	}
@@ -298,29 +590,29 @@ button {
 }
 
 .word-sections {
+	color: var(--word-sections-text);
 	z-index: 2;
 	border-radius: 20px;
 	padding-block: 3rem;
-	background-color: var(--bg);
+	background-color: var(--bg-1);
 	visibility: visible;
 	/* this is for the transition as it appears */
-	transition: transform .3s ease-out, visibilty 0s;
+	transition: transform .3s ease-out, visibilty 0s, background-color var(--color-transition), color var(--color-transition);
 }
 #saved-words.empty{
-	visibility: hidden;
+	/* visibility: hidden; */
 	/* display: none; */
 	/* this is for the transition as it disappears */
-	transition: transform 1s ease-in 1s, visibility 0s linear 3s;
+	/* transition: transform 1s ease-in 1s, visibility 0s linear 3s; */
 	
 }
 #generated-words.empty{
 	/* this is for the transition as it disappears */
-	transition: transform 1s ease-in .5s, visibility 0s linear 3s;
-	visibility: hidden;
+	/* transition: transform 1s ease-in .5s, visibility 0s linear 3s; */
+	/* visibility: hidden; */
 }
 .word-sections + .word-sections {
 	margin-top: 3rem;
-
 }
 
 
@@ -333,19 +625,23 @@ word-list {
 
 	word-tile {
 		background-color: var(--word-tile);
+		color: var(--word-tile-text);
 		padding: 10px;
 		border-radius: var(--border-radius-small);
 		opacity: 1;
 		transition: opacity 1s;
+		transition: background-color var(--color-transition), color var(--color-transition);
 
 		&:hover {
 			background-color: var(--word-tile-selected);
 			color: var(--word-tile-selected-text);
+			transition: background-color var(--color-transition), color var(--color-transition);
 		}
 	}
 	word-tile.selected {
 		background-color: var(--word-tile-selected);
 		color: var(--word-tile-selected-text);
+		transition: background-color var(--color-transition), color var(--color-transition);
 	}
 	word-tile.removed{
 		opacity: 0;
@@ -373,6 +669,8 @@ definition-panel {
 	padding-bottom: 64px;
 
 	box-shadow: var(--box-shadow-big);
+	transition: box-shadox var(--color-transition), color var(--color-transition), background-color, var(--color-transition);
+
 
 	h3 {
 		padding: 1rem;
@@ -381,12 +679,16 @@ definition-panel {
 	.tools {
 		display: flex;
 		justify-content: space-between;
+
+		
 		.x-out-div {
 			cursor: pointer;
 			height: 30px;
 			width: 30px;
 			.x-out-path{
 				stroke: var(--border);
+				transition: stroke var(--color-transition);
+
 			}
 
 		}
@@ -395,42 +697,46 @@ definition-panel {
 		
 			.bookmark-svg {
 				min-width: 31px;
-				fill: var(--bg);
+				fill: var(--bookmark-bg);
 				stroke: var(--border);
 				transition: .2s;
+				transition: fill var(--color-transition), stroke var(--color-transition);
 
 			}
 
 			&.active .bookmark-svg {
-				fill: var(--border);
+				fill: var(--bookmark-active-bg);
+				transition: fill var(--color-transition);
 			}
 
 			&.active::before{
 				content: "Saved";
 				padding-right: 10px;
-				color: var(--subdued-ink)
+				color: var(--bookmark-label);
+				transition: color var(--color-transition);
 			}
 
 			&:hover {
 				.bookmark-svg {
-					fill: var(--border);
+					fill: var(--bookmark-active-bg);
+					transition: fill var(--color-transition);
 				}
 
 				&::before {
 					content: "Save?";
 					padding-right: 10px;
-					color: var(--subdued-ink)
+					color: var(--bookmark-label);
+					transition: color var(--color-transition);
 				}
 			}
 			&.active:hover {
-				.bookmark-svg {
+				/* .bookmark-svg {
 					fill: var(--bg-2);
-				}
+				} */
 
 				&::before {
 					content: "Remove?";
 					padding-right: 10px;
-					color: var(--subdued-ink)
 				}
 			}
 		}
@@ -469,6 +775,17 @@ definition-panel {
 			gap: 1.5rem;
 			justify-content: flex-end;
 			padding-right: 5px;
+
+			#clear-saved-words{
+				background-color: var(--button-2-bg);
+				color: var(--button-2-text);
+				transition: background-color var(--color-transition), color var(--color-transition);
+			}
+			#copy-saved-words {
+				background-color: var(--button-1-bg);
+				color: var(--button-1-text);
+				transition: background-color var(--color-transition), color var(--color-transition);
+			}
 			
 			button {
 				padding-inline: 11px;
@@ -517,10 +834,8 @@ definition-panel {
 		/* minmax( min: (get the width of main which is either 100vw or max-width) - grid_gap - twice_the_wide_margins - value_of_left_column) */
 		grid-template-columns:
 			min(calc(400px + (100vw - 1020px) * .5), 600px)
-			calc(min(100vw, 1600px) - min(3vw, 6rem) - (var(--wide-margin) * 2) - min(calc(400px + (100vw - 1020px) * .5), 600px));
+			calc(min(100vw, 1600px) - min(3vw, 6rem) - min(calc(400px + (100vw - 1020px) * .5), 600px));
 		grid-template-rows: min-content auto;
-		/* simpler attempt */
-		/* grid-template-columns: 400px 1fr; */
 		column-gap: min(3vw, 6rem);
 		margin-inline: auto;
 	}
@@ -531,13 +846,21 @@ definition-panel {
 	header {
 		grid-column: 1 / span 2;
 		height: min-content;
-		padding-left: var(--wide-margin);
+		
 		/* display: grid;
 		grid-template-columns: subgrid;
 		
 		inner-column {
 			width: 100%;
 		} */
+
+		.topbar {
+			padding-inline: var(--wide-margin);
+		}
+
+		.title {
+			padding-left: var(--wide-margin);
+		}
 	}
 
 
@@ -553,6 +876,7 @@ definition-panel {
 		grid-column: 1;
 		padding-left: var(--wide-margin);
 		height: 100%;
+		overflow: scroll;
 	}
 
 
@@ -569,7 +893,7 @@ definition-panel {
 		
 	}
 
-	#saved-words.empty{
+	/* #saved-words.empty{
 		transform: translateY(+100vh);
 
 		
@@ -577,7 +901,7 @@ definition-panel {
 	#generated-words.empty{
 		transform: translateY(-100vh);
 
-	
+	} */
 
 }
 
