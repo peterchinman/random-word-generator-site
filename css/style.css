@@ -308,10 +308,37 @@ header {
 			
 		}
 	}
-	
 
 	.title {
 		padding-block: 3rem;
+
+		.title-word-cursor-container {
+			position: relative;
+			
+			.cursor {
+				display: inline-block;
+				position: absolute;
+				bottom: 0;
+				width: .6em;
+				min-height: 2px;
+				background-color: var(--ink);
+				opacity: .3;
+				animation: blink 1s step-start infinite;
+				transition: none;
+			}
+
+			
+
+			
+	
+			
+		}
+	}
+}
+
+@keyframes blink {
+	50% {
+		opacity: 0;
 	}
 }
 

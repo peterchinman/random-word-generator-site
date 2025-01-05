@@ -42,7 +42,7 @@
 		</inner-column>
 	</div>
 <inner-column>
-	<h1 class="title">Random Word Generator</h1>
+	<h1 class="title">Random <span class="title-word-cursor-container"><span id="title-word">Word</span><span class="cursor"></span><span id="title-spaces"></span></span> Generator</h1>
 </inner-column>
 </header>
 

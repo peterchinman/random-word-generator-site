@@ -1,3 +1,57 @@
+// WORM WORD WOOD WOOL
+
+const words = [
+   "Wind", "Wisp", "Wave", "Wool", "Womb", "Wine", "Word", "Wash", "Want", "Wage", "Whim", "Wand", "Wall", "Wail", "Worm", "Work", "Wing", "Warp", "Wood", "Wink", "Wart", "Wick", "Whip", "Weed", "Wasp", "Welt", "Wire", "Walk", "Wife", "Wolf", "Week", "Wish"
+];
+
+const titleWord = document.querySelector('#title-word');
+const titleSpaces = document.querySelector('#title-spaces');
+const initialDelay = 4000;
+
+function changeWord() {
+   const betweenWordDelay = 4000;
+   const startNewWordDelay = 0;
+   const typingDelay = 250;
+   const deleteDelay = 250;
+   const wordIndex = Math.floor(Math.random() * words.length);
+   const newWord = words[wordIndex];
+
+   let currentText = titleWord.textContent;
+
+   // every delay milliseconds, this block will run
+   let interval = setInterval(() => {
+         // if currentText is prefix of newWord
+         if (newWord.slice(0, currentText.length ) === currentText) {
+            clearInterval(interval);
+            // wait for startNewWordDelay milliseconds, then start typing newWord
+            setTimeout(() => {
+               let chars = newWord.slice(currentText.length).split("");
+               interval = setInterval(() => {
+                     // if we've finshed typing the new word
+                     // wait for betweenWordDelay, and then start over
+                     if (chars.length === 0) {
+                        clearInterval(interval);
+                        setTimeout(changeWord, betweenWordDelay);
+                        return;
+                     }
+                     currentText += chars.shift();
+                     titleWord.textContent = currentText;
+                     titleSpaces.innerHTML = titleSpaces.innerHTML.replace(/&nbsp;/, "")
+               }, typingDelay);
+            }, startNewWordDelay);
+         // otherwise we need to keep deleting
+         } else {
+            currentText = currentText.slice(0, -1);
+            titleWord.textContent = currentText;
+            // add a space!
+            titleSpaces.innerHTML += '&nbsp;';
+         }
+   }, deleteDelay);
+}
+// wait for initialDelay and then run function
+setTimeout(changeWord, initialDelay);
+
+
 // FORM SUBMIT LOGIC
 
 const $form = document.querySelector('form');
