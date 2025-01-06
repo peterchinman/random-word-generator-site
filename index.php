@@ -15,6 +15,15 @@
 	<link href="css/style.css" rel="stylesheet">
 	
 </head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DVSLKV7M01"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-DVSLKV7M01');
+</script>
 
 <body class="cute light">
 
