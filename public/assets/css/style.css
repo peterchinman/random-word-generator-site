@@ -392,7 +392,7 @@ form {
 			&:has(input[type="checkbox"]:checked) {
 
 				&::before {
-					/* content: url(../static/checkmark.svg); */
+					/* content: url(../images/checkmark.svg); */
 					/* instead of SVG, just use font... */
 					content: '✓';
 					font-family: sans-serif;
@@ -402,8 +402,8 @@ form {
 
 					/* trying mask solution for changing stroke color */
 					/* but it doesn't let you set a background on this pseudo-element, separately */
-					/* -webkit-mask: url(../static/checkmark.svg);
-					mask: url(../static/checkmark.svg);
+					/* -webkit-mask: url(../images/checkmark.svg);
+					mask: url(../images/checkmark.svg);
 					-webkit-mask-size: cover;
 					background: red;
   					mask-size: cover; */
@@ -455,7 +455,7 @@ form {
 		
 
 		/* summary::after {
-			content: url(../static/option-arrow.svg);
+			content: url(../images/option-arrow.svg);
 			padding-left: .5rem;
 			transform: rotate(0);
 			transform-origin: .2rem 50%;

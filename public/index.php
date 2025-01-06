@@ -12,7 +12,7 @@
 	<meta name="description" content="A Random Word Generator">
 	<meta property="og:image" content="[[Insert Absolute Path]]">
 
-	<link href="css/style.css" rel="stylesheet">
+	<link href="assets/css/style.css" rel="stylesheet">
 	
 </head>
 <!-- Google tag (gtag.js) -->
@@ -154,7 +154,7 @@
 </main>
 
 
-<script src="javascript/javascript.js"></script>
+<script src="assets/javascript/javascript.js"></script>
 
 </body>
 

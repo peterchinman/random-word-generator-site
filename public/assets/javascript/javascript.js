@@ -8,6 +8,8 @@ const titleWord = document.querySelector('#title-word');
 const titleSpaces = document.querySelector('#title-spaces');
 const initialDelay = 4000;
 
+
+// This function picks a word from our word list, deletes the letters in "Word" in the page title, one-by-one, until it we have a prefix of our new word, and then writes the new letters, one-by-one
 function changeWord() {
    const betweenWordDelay = 4000;
    const startNewWordDelay = 0;
@@ -101,7 +103,7 @@ function getRandomWords(numberOfWords, partsOfSpeech, minWordLength, maxWordLeng
    });
 
    // Fetch data from the server
-   fetch(`get_words.php?${queryParams.toString()}`)
+   fetch(`/api/get_words.php?${queryParams.toString()}`)
       .then(response => {
          if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
