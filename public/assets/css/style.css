@@ -218,6 +218,7 @@ body.cute.dark{
 }
 
 body {
+	border: 2px solid red;
 	background-color: var(--bg-2);
 	font-family: "Roboto Mono", monospace;
 	height: 100vh;
@@ -386,7 +387,7 @@ form {
 				color: var(--option-selected-text);
 				transition: background-color var(--color-transition), color var(--color-transition);
 			}
-			
+
 			&:has(input:focus){
 				border: 1px solid blue;
 			}
