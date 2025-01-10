@@ -53,8 +53,8 @@
 			<fieldset class="options">
 				<legend>Number of words to generate</legend>
 				<label>10<input type="radio" name="number-words" value="10"></label>
-				<label>15<input type="radio" name="number-words" value="15" checked></label>
-				<label>25<input type="radio" name="number-words" value="25"></label>
+				<label>15<input type="radio" name="number-words" value="15"></label>
+				<label>25<input type="radio" name="number-words" value="25" checked></label>
 				<label>40<input type="radio" name="number-words" value="40"></label>
 			</fieldset>
 			<details id="filters">

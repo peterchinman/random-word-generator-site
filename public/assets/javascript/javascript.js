@@ -93,7 +93,7 @@ $form.addEventListener('click', (event) => {
    }
 })
 
-function getRandomWords(numberOfWords, partsOfSpeech, minWordLength, maxWordLength) {
+function getRandomWords(numberOfWords = 25, partsOfSpeech = [], minWordLength = 0, maxWordLength = 0) {
    // Construct query parameters
    const queryParams = new URLSearchParams({ 
       numberOfWords: numberOfWords,
@@ -152,8 +152,11 @@ window.addEventListener('resize', openFilters)
 
 document.addEventListener("DOMContentLoaded", function() {
    // for testing:
-   // processRandomWordData(pretendData);
    updateSavedWords();
+
+   getRandomWords();
+
+   // initially load random words
 
    const lightDark = document.querySelector('#light-dark');
    const cuteSerious = document.querySelector('#cute-serious');
