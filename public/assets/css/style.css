@@ -218,7 +218,7 @@ body.cute.dark{
 }
 
 body {
-	border: 2px solid red;
+	border: 2px solid blue;
 	background-color: var(--bg-2);
 	font-family: "Roboto Mono", monospace;
 	height: 100vh;
