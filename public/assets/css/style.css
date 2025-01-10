@@ -82,8 +82,6 @@ body.serious.light{
 	--bookmark-label: var(--subdued-ink);
 	--bookmark-bg: var(--middle-tone);
 	--bookmark-active-bg: var(--ink);
-	
-	
 
 	--box-shadow-small: 5px 5px var(--drop-shadow);
 	--box-shadow-big: 10px 10px var(--drop-shadow);
@@ -387,6 +385,10 @@ form {
 				background-color: var(--option-selected-bg);
 				color: var(--option-selected-text);
 				transition: background-color var(--color-transition), color var(--color-transition);
+			}
+			
+			&:has(input:focus){
+				border: 1px solid blue;
 			}
 
 			&:has(input[type="checkbox"]:checked) {
