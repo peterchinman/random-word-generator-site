@@ -58,12 +58,16 @@ setTimeout(changeWord, initialDelay);
 
 const $form = document.querySelector('form');
 
-document.addEventListener('ontouchstart', (event) => {
+document.addEventListener('touchstart', (event) => {
    event.target.classList.add('touch-press')
 })
-document.addEventListener('ontouchend', (event) => {
+document.addEventListener('touchend', (event) => {
    event.target.classList.remove('touch-press')
 })
+document.addEventListener('touchcancel', (event) => {
+   event.target.classList.remove('touch-press')
+})
+
 
 $form.addEventListener('click', (event) => {
    // GENERATE click
