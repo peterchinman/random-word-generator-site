@@ -522,6 +522,11 @@ form {
 						transition: background-color var(--color-transition), color var(--color-transition);
 					}
 				}
+				&.touch-press {
+					background-color: var(--option-selected-bg);
+					color: var(--option-selected-text);
+					transition: background-color var(--color-transition), color var(--color-transition);
+				}
 			}
 			label {
 				display: flex;
@@ -616,6 +621,11 @@ button {
 			/* font-weight: 900; */
 			/* letter-spacing: 3px; */
 		}
+	}
+
+	&.touch-press {
+		transform: translate(5px, 5px);
+		box-shadow: 0 0 var(--drop-shadow);
 	}
 }
 
