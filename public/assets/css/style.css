@@ -515,11 +515,12 @@ form {
 					stroke: var(--ink);
 					transition: stroke var(--color-transition);
 				}
-
-				&:hover {
-					background-color: var(--option-selected-bg);
-					color: var(--option-selected-text);
-					transition: background-color var(--color-transition), color var(--color-transition);
+				@media(hover: hover) and (pointer: fine) {
+					&:hover {
+						background-color: var(--option-selected-bg);
+						color: var(--option-selected-text);
+						transition: background-color var(--color-transition), color var(--color-transition);
+					}
 				}
 			}
 			label {
@@ -578,10 +579,13 @@ form {
 		
 		}
 
-		#reset:hover {
-			transform: translate(5px, 5px);
-			box-shadow: 0 0 var(--drop-shadow);
-			/* background-color: var(--border); */
+		@media(hover: hover) and (pointer: fine) {
+
+			#reset:hover {
+				transform: translate(5px, 5px);
+				box-shadow: 0 0 var(--drop-shadow);
+				/* background-color: var(--border); */
+			}
 		}
 	}
 }
@@ -602,16 +606,17 @@ button {
 	transition: background-color var(--color-transition), color var(--color-transition), box-shadow var(--color-transition), transform var(--color-transition);
 
 
+	@media(hover: hover) and (pointer: fine) {
 
-	&:hover {
-		transform: translate(5px, 5px);
-		box-shadow: 0 0 var(--drop-shadow);
-		/* background-color: var(--option-selected-bg); */
-		/* color: var(--bg-2); */
-		/* font-weight: 900; */
-		/* letter-spacing: 3px; */
+		&:hover {
+			transform: translate(5px, 5px);
+			box-shadow: 0 0 var(--drop-shadow);
+			/* background-color: var(--option-selected-bg); */
+			/* color: var(--bg-2); */
+			/* font-weight: 900; */
+			/* letter-spacing: 3px; */
+		}
 	}
-
 }
 
 #results{
@@ -661,10 +666,12 @@ word-list {
 		transition: opacity 1s;
 		transition: background-color var(--color-transition), color var(--color-transition);
 
-		&:hover {
-			background-color: var(--word-tile-selected);
-			color: var(--word-tile-selected-text);
-			transition: background-color var(--color-transition), color var(--color-transition);
+		@media(hover: hover) and (pointer: fine) {
+			&:hover {
+				background-color: var(--word-tile-selected);
+				color: var(--word-tile-selected-text);
+				transition: background-color var(--color-transition), color var(--color-transition);
+			}
 		}
 	}
 	word-tile.selected {
@@ -745,27 +752,29 @@ definition-panel {
 				transition: color var(--color-transition);
 			}
 
-			&:hover {
-				.bookmark-svg {
-					fill: var(--bookmark-active-bg);
-					transition: fill var(--color-transition);
-				}
+			@media(hover: hover) and (pointer: fine) {
+				&:hover {
+					.bookmark-svg {
+						fill: var(--bookmark-active-bg);
+						transition: fill var(--color-transition);
+					}
 
-				&::before {
-					content: "Save?";
-					padding-right: 10px;
-					color: var(--bookmark-label);
-					transition: color var(--color-transition);
+					&::before {
+						content: "Save?";
+						padding-right: 10px;
+						color: var(--bookmark-label);
+						transition: color var(--color-transition);
+					}
 				}
-			}
-			&.active:hover {
-				/* .bookmark-svg {
-					fill: var(--bg-2);
-				} */
+				&.active:hover {
+					/* .bookmark-svg {
+						fill: var(--bg-2);
+					} */
 
-				&::before {
-					content: "Remove?";
-					padding-right: 10px;
+					&::before {
+						content: "Remove?";
+						padding-right: 10px;
+					}
 				}
 			}
 		}

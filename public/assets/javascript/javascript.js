@@ -381,6 +381,7 @@ function createWordTileAndDefinitionPanel(word){
    let wordTile = document.createElement('word-tile');
    wordTile.innerText = word.word;
    wordTile.dataset.word = word.word;
+   wordTile.setAttribute("tabindex", "0");
 
    // definition panel
    let panelHTML = createDefinitionPanel(word);
