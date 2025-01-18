@@ -11,7 +11,7 @@
 	<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100..700&display=swap" rel="stylesheet">
 
 	<meta name="description" content="A Random Word Generator">
-	<meta property="og:image" content="[[Insert Absolute Path]]">
+	<meta property="og:image" content="https://randomwordgenerator.info/assets/images/sharecard.png">
 
 	<link href="assets/css/style.css" rel="stylesheet">
 	
