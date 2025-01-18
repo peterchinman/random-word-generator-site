@@ -19,12 +19,12 @@ if ($partsOfSpeech){
 // minWordLengthQuery
 $minWordLengthQuery = "";
 if ($minWordLength > 0 && $minWordLength < 26) {
-   $minWordLengthQuery .= "AND length(word.word) > $minWordLength";
+   $minWordLengthQuery .= "AND length(word.word) >= $minWordLength";
 }
 // maxWordLengthQuery
 $maxWordLengthQuery = "";
 if ($maxWordLength > 0 && $maxWordLength < 26) {
-   $maxWordLengthQuery .= "AND length(word.word) < $maxWordLength";
+   $maxWordLengthQuery .= "AND length(word.word) <= $maxWordLength";
 }
 
 // write the query with sting interpolation
