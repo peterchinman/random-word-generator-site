@@ -54,9 +54,8 @@ function changeWord() {
 setTimeout(changeWord, initialDelay);
 
 
-// FORM SUBMIT LOGIC
 
-const $form = document.querySelector('form');
+// HANDLE touchscreen button presses
 
 document.addEventListener('touchstart', (event) => {
    event.target.classList.add('touch-press')
@@ -67,6 +66,11 @@ document.addEventListener('touchend', (event) => {
 document.addEventListener('touchcancel', (event) => {
    event.target.classList.remove('touch-press')
 })
+
+
+// FORM SUBMIT LOGIC
+
+const $form = document.querySelector('form');
 
 
 $form.addEventListener('click', (event) => {
@@ -160,18 +164,29 @@ openFilters();
 window.addEventListener('resize', openFilters)
 
 
+
+
 // THIS EVENT LISTENER CONTROLS THE .word-sections sections, #generated-words and #saved-words, and the color themes
 
 document.addEventListener("DOMContentLoaded", function() {
-   // for testing:
    updateSavedWords();
 
-   getRandomWords();
-
    // initially load random words
+   getRandomWords();
 
    const lightDark = document.querySelector('#light-dark');
    const cuteSerious = document.querySelector('#cute-serious');
+
+   // if User Prefers Dark mode, set to darkest color scheme
+   if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      lightDark.checked = true;
+      document.body.classList.add('dark');
+      document.body.classList.remove('light');
+      cuteSerious.checked = true;
+      document.body.classList.add('serious');
+      document.body.classList.remove('cute');
+   }
+
 
    document.addEventListener('click', function(event) {
 

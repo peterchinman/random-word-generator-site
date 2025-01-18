@@ -49,6 +49,8 @@
 }
 
 body.serious.light{
+	color-scheme: light;
+
 	--bg-1: #EEE8D5;
 	--bg-2: #FAF5E5;
 	--middle-tone: #94A1A1;
@@ -88,6 +90,8 @@ body.serious.light{
 }
 
 body.serious.dark{
+	color-scheme: dark;
+
 	--bg-1: #002B37;
 	--bg-2: #083F4E;
 	--middle-tone: #586E75;
@@ -129,6 +133,8 @@ body.serious.dark{
 }
 
 body.cute.light{
+	color-scheme: light;
+
 	--bg-1: #FDF7E7;
 	--bg-2: #F7EBE4;
 	--middle-tone: #E7C2AC;
@@ -174,6 +180,8 @@ body.cute.light{
 }
 
 body.cute.dark{
+	color-scheme: light;
+	
 	--bg-1: #506CE1;
 	--bg-2: #E0E1F7;
 	--subdued-ink: #637BE4;
