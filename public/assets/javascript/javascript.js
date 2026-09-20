@@ -1,541 +1,428 @@
-// WORM WORD WOOD WOOL
+// TITLE ANIMATION
+// Every few seconds the "Word" in the page title is deleted back to the longest
+// prefix it shares with a randomly chosen W-word, and the new word is typed out.
 
-const words = [
+const titleWords = [
    "Wind", "Wisp", "Wave", "Wool", "Womb", "Wine", "Word", "Wash", "Want", "Wage", "Whim", "Wand", "Wall", "Wail", "Worm", "Work", "Wing", "Warp", "Wood", "Wink", "Wart", "Wick", "Whip", "Weed", "Wasp", "Welt", "Wire", "Walk", "Wife", "Wolf", "Week", "Wish"
 ];
 
-const titleWord = document.querySelector('#title-word');
-const titleSpaces = document.querySelector('#title-spaces');
+const $titleWord = document.querySelector('#title-word');
+const $titleSpaces = document.querySelector('#title-spaces');
 const initialDelay = 4000;
 
-
-// This function picks a word from our word list, deletes the letters in "Word" in the page title, one-by-one, until it we have a prefix of our new word, and then writes the new letters, one-by-one
 function changeWord() {
    const betweenWordDelay = 4000;
    const startNewWordDelay = 0;
    const typingDelay = 250;
    const deleteDelay = 250;
-   const wordIndex = Math.floor(Math.random() * words.length);
-   const newWord = words[wordIndex];
+   const newWord = titleWords[Math.floor(Math.random() * titleWords.length)];
 
-   let currentText = titleWord.textContent;
+   let currentText = $titleWord.textContent;
 
-   // every delay milliseconds, this block will run
+   // Delete one letter at a time until what's left is a prefix of the new word
    let interval = setInterval(() => {
-         // if currentText is prefix of newWord
-         if (newWord.slice(0, currentText.length ) === currentText) {
-            clearInterval(interval);
-            // wait for startNewWordDelay milliseconds, then start typing newWord
-            setTimeout(() => {
-               let chars = newWord.slice(currentText.length).split("");
-               interval = setInterval(() => {
-                     // if we've finshed typing the new word
-                     // wait for betweenWordDelay, and then start over
-                     if (chars.length === 0) {
-                        clearInterval(interval);
-                        setTimeout(changeWord, betweenWordDelay);
-                        return;
-                     }
-                     currentText += chars.shift();
-                     titleWord.textContent = currentText;
-                     titleSpaces.innerHTML = titleSpaces.innerHTML.replace(/&nbsp;/, "")
-               }, typingDelay);
-            }, startNewWordDelay);
-         // otherwise we need to keep deleting
-         } else {
-            currentText = currentText.slice(0, -1);
-            titleWord.textContent = currentText;
-            // add a space!
-            titleSpaces.innerHTML += '&nbsp;';
-         }
+      if (newWord.startsWith(currentText)) {
+         clearInterval(interval);
+         // then type the rest of the new word, one letter at a time
+         setTimeout(() => {
+            const chars = newWord.slice(currentText.length).split("");
+            interval = setInterval(() => {
+               if (chars.length === 0) {
+                  clearInterval(interval);
+                  setTimeout(changeWord, betweenWordDelay);
+                  return;
+               }
+               currentText += chars.shift();
+               $titleWord.textContent = currentText;
+               $titleSpaces.innerHTML = $titleSpaces.innerHTML.replace(/&nbsp;/, "");
+            }, typingDelay);
+         }, startNewWordDelay);
+      } else {
+         currentText = currentText.slice(0, -1);
+         $titleWord.textContent = currentText;
+         // pad with a space so the rest of the title doesn't shift left
+         $titleSpaces.innerHTML += '&nbsp;';
+      }
    }, deleteDelay);
 }
-// wait for initialDelay and then run function
 setTimeout(changeWord, initialDelay);
 
 
 
-// HANDLE touchscreen button presses
+// TOUCHSCREEN BUTTON PRESSES
+// Touch devices have no hover state, so mimic one with a class while a finger is down.
 
-document.addEventListener('touchstart', (event) => {
-   event.target.classList.add('touch-press')
-})
-document.addEventListener('touchend', (event) => {
-   event.target.classList.remove('touch-press')
-})
-document.addEventListener('touchcancel', (event) => {
-   event.target.classList.remove('touch-press')
-})
+document.addEventListener('touchstart', (event) => event.target.classList.add('touch-press'), { passive: true });
+document.addEventListener('touchend', (event) => event.target.classList.remove('touch-press'), { passive: true });
+document.addEventListener('touchcancel', (event) => event.target.classList.remove('touch-press'), { passive: true });
 
 
-// FORM SUBMIT LOGIC
+
+// WORD OPTIONS FORM
 
 const $form = document.querySelector('form');
 
+// Generate (or pressing Enter in a field) fetches new words instead of reloading the page
+$form.addEventListener('submit', (event) => {
+   event.preventDefault();
+   getRandomWords(optionsFromForm());
+});
 
+// The arrow buttons beside the min/max fields step the number up or down, within the field's min and max
 $form.addEventListener('click', (event) => {
-   // GENERATE click
-   if (event.target.matches('#generate')) {
-      // don't submit the form!
-      event.preventDefault();
-      
-      // get number of words
-      let numberOfWords = 0;
-
-      const numberCheckboxes = $form.querySelectorAll('input[name="number-words"]');
-      numberCheckboxes.forEach((checkbox) => {
-         if (checkbox.checked) {
-            numberOfWords = checkbox.value;
-         }
-      })
-      if (!numberOfWords) {
-         // TODO error message "must select number of words"
-      }
-
-      // get parts of speech
-      let partsOfSpeech = []; // e.g ["noun", "verb", "adj", "adv"]
-      const partsOfSpeechCheckboxes = $form.querySelectorAll('input[name="parts-of-speech"]');
-      partsOfSpeechCheckboxes.forEach((checkbox) => {
-         if (checkbox.checked) {
-            partsOfSpeech.push(checkbox.value);
-         }
-      })
-      
-      // get Word Length
-      minWordLength = $form.querySelector('input[name="min-word-length"]').value;
-      maxWordLength = $form.querySelector('input[name="max-word-length"]').value;
-
-      getRandomWords(numberOfWords, partsOfSpeech, minWordLength, maxWordLength);
+   const $button = event.target.closest('.crement');
+   if (!$button) return;
+   const $input = $button.parentElement.querySelector('input');
+   if ($button.classList.contains('increment')) {
+      $input.stepUp();
+   } else {
+      $input.stepDown();
    }
-})
+});
 
-function getRandomWords(numberOfWords = 25, partsOfSpeech = [], minWordLength = 0, maxWordLength = 0) {
-   // Construct query parameters
-   const queryParams = new URLSearchParams({ 
-      numberOfWords: numberOfWords,
+// The form's current settings, in the shape getRandomWords expects
+function optionsFromForm() {
+   const formData = new FormData($form);
+   return {
+      numberOfWords: formData.get('number-words'),
+      partsOfSpeech: formData.getAll('parts-of-speech'),
+      minWordLength: formData.get('min-word-length'),
+      maxWordLength: formData.get('max-word-length'),
+   };
+}
+
+// The API query string for a set of options. Missing or empty values are normalised so that
+// the same settings always give the same string (the prefetched batch is keyed on it).
+function wordQuery({ numberOfWords, partsOfSpeech = [], minWordLength, maxWordLength } = {}) {
+   return new URLSearchParams({
+      numberOfWords: Number(numberOfWords) || 25,
       partsOfSpeech: partsOfSpeech.join(','),
-      minWordLength: minWordLength,
-      maxWordLength: maxWordLength
-   });
+      minWordLength: Number(minWordLength) || 0,
+      maxWordLength: Number(maxWordLength) || 0,
+   }).toString();
+}
 
-   // Fetch data from the server
-   fetch(`/api/get_words.php?${queryParams.toString()}`)
-      .then(response => {
+function fetchWords(query) {
+   return fetch(`/api/get_words.php?${query}`)
+      .then((response) => {
          if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
          }
          return response.json();
-      })
-      .then(data => {
-         console.log(data); 
-
-         // Example: Logging each word and its meanings
-         // data.forEach(item => {
-         //    console.log(`Word: ${item.word}`);
-         //    item.meanings.forEach((meaning, index) => {
-         //       console.log(`Definition ${index}: ${meaning.definition}`);
-         //       console.log(`Example ${index}: ${meaning.example}`);
-         //       console.log(`Speech part ${index}: ${meaning.speech_part}`);
-         //       console.log(`Synonyms ${index}: ${meaning.synonyms}`);
-         //    });
-         // });
-
-         // Pass the fetched data to another function for further processing
-         processRandomWordData(data);
-      })
-      .catch(error => console.error('Error fetching data:', error));
+      });
 }
 
+// PREFETCHING
+// Once a batch is on screen, the next batch for the same settings is requested straight away
+// and held, so a repeat click on Generate renders without waiting for the network. The held
+// batch is keyed by its query string: if the settings changed in the meantime it is discarded
+// and the click fetches normally. A prefetch that failed is dropped the same way.
+let prefetched = null; // { query, promise } or null
 
+function prefetchWords(query) {
+   const promise = fetchWords(query);
+   promise.catch(() => {}); // stops a failed prefetch being reported as an unhandled rejection
+   prefetched = { query, promise };
+}
 
+function getRandomWords(options) {
+   const query = wordQuery(options);
+   const usePrefetched = prefetched !== null && prefetched.query === query;
+   const words = usePrefetched
+      ? prefetched.promise.catch(() => fetchWords(query))
+      : fetchWords(query);
+   prefetched = null;
 
-// THE FOLLOWING CHUNK sets the FILTERS to auto-open if the page is wide, otherwise, auto-closed
+   words
+      .then((data) => {
+         processRandomWordData(data);
+         prefetchWords(query);
+      })
+      .catch((error) => console.error('Error fetching words:', error));
+}
 
-// if you change this breakpoint, also change it in the css media query
-const wideBreakPoint = "1020px"
+// Open the Filters section automatically on wide screens.
+// If you change this breakpoint, also change it in the CSS media query.
+const wideBreakPoint = "1020px";
 function openFilters() {
-   const $filters = document.querySelector('#filters')
-   let mediaQuery = window.matchMedia(`(min-width: ${wideBreakPoint})`);
-   if(mediaQuery.matches) {
-      $filters.open = true;
+   if (window.matchMedia(`(min-width: ${wideBreakPoint})`).matches) {
+      document.querySelector('#filters').open = true;
    }
 }
 openFilters();
-window.addEventListener('resize', openFilters)
+window.addEventListener('resize', openFilters);
 
 
 
+// COLOR THEMES
+// Two switches: palette (pinkish or bluish) and mode (light or dark). Each combination
+// is a pair of body classes, e.g. "pink dark", that style.css defines a theme for.
 
-// THIS EVENT LISTENER CONTROLS THE .word-sections sections, #generated-words and #saved-words, and the color themes
+const $pinkBlue = document.querySelector('#pink-blue');
+const $lightDark = document.querySelector('#light-dark');
 
-document.addEventListener("DOMContentLoaded", function() {
-   updateSavedWords();
+function applyTheme() {
+   document.body.classList.toggle('blue', $pinkBlue.checked);
+   document.body.classList.toggle('pink', !$pinkBlue.checked);
+   document.body.classList.toggle('dark', $lightDark.checked);
+   document.body.classList.toggle('light', !$lightDark.checked);
+}
 
-   // initially load random words
-   getRandomWords();
+// If the visitor's system prefers dark mode, start in dark
+if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+   $lightDark.checked = true;
+}
+applyTheme();
+$pinkBlue.addEventListener('change', applyTheme);
+$lightDark.addEventListener('change', applyTheme);
 
-   const lightDark = document.querySelector('#light-dark');
-   const cuteSerious = document.querySelector('#cute-serious');
 
-   // if User Prefers Dark mode, set to darkest color scheme
-   if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      lightDark.checked = true;
-      document.body.classList.add('dark');
-      document.body.classList.remove('light');
-      cuteSerious.checked = true;
-      document.body.classList.add('serious');
-      document.body.classList.remove('cute');
+
+// WORD TILES, DEFINITION PANELS AND BOOKMARKS
+
+document.addEventListener('click', (event) => {
+   const $target = event.target;
+
+   // Clicking anywhere outside an open definition panel closes it
+   const $activePanel = document.querySelector('definition-panel.active');
+   if ($activePanel && !$target.matches('definition-panel, definition-panel *')) {
+      updateCurrentlySelectedWord($activePanel);
+      panelCloseOut($activePanel);
    }
 
+   // Clicking a word tile opens its definition panel
+   if ($target.tagName === 'WORD-TILE') {
+      updateCurrentlySelectedWord($target);
+      $target.querySelector('definition-panel').classList.add('active');
+      setPanelOffsets($target);
+   }
 
-   document.addEventListener('click', function(event) {
+   // The X in a panel's corner closes it
+   if ($target.matches('.x-out-div, .x-out-div *')) {
+      updateCurrentlySelectedWord($target);
+      panelCloseOut($target.closest('definition-panel'));
+   }
 
+   // The bookmark in a panel saves or un-saves the word
+   if ($target.matches('.bookmark, .bookmark *')) {
+      toggleBookmark($target.closest('word-tile'));
+   }
 
-      if (event.target == lightDark){
-         if(lightDark.checked == true){
-            document.body.classList.add('dark');
-            document.body.classList.remove('light');
-         }
-         if(lightDark.checked == false){
-            document.body.classList.add('light');
-            document.body.classList.remove('dark');
-         }
-      }
+   if ($target.matches('#clear-saved-words')) {
+      localStorage.removeItem('savedWords');
+      updateSavedWords();
+      document.querySelectorAll('.bookmark.active').forEach(($bookmark) => $bookmark.classList.remove('active'));
+   }
 
-      if (event.target == cuteSerious){
-         if(cuteSerious.checked == true){
-            document.body.classList.add('serious');
-            document.body.classList.remove('cute');
-         }
-         if(cuteSerious.checked == false){
-            document.body.classList.add('cute');
-            document.body.classList.remove('serious');
-         }
-      }
+   if ($target.matches('#copy-saved-words')) {
+      copySavedWords($target);
+   }
+});
 
-      // if there is an active dictionary panel and we click outside of a dictionary panel
-      if (document.querySelector('definition-panel.active') && !event.target.matches('definition-panel, definition-panel *')) {
-         // deselect <word-tile>
-         let $activePanel = document.querySelector('definition-panel.active')
-         updateCurrentlySelectedWord($activePanel);
-         // close the panel
-         panelCloseOut($activePanel)
-      }
-      
-      // click on <word-tile>
-      if (event.target.tagName === "WORD-TILE") {
-         // update currently selected word-tile
-         updateCurrentlySelectedWord(event.target);
+// Saved words live in localStorage as { name, html } objects, so the saved list can rebuild each tile
+// and they survive reloads and new visits
+function getSavedWords() {
+   return JSON.parse(localStorage.getItem('savedWords')) || [];
+}
+function setSavedWords(savedWords) {
+   localStorage.setItem('savedWords', JSON.stringify(savedWords));
+}
 
-         // check if there is already an open definition panel
-         let openPanel = document.querySelector('definition-panel.active');
-         if (openPanel){
-            panelCloseOut(openPanel);
-         }
+function toggleBookmark($wordTile) {
+   const wordName = $wordTile.dataset.word;
+   const $bookmark = $wordTile.querySelector('.bookmark');
+   const inSavedList = $wordTile.closest('word-list').id === 'saved-words-list';
+   let savedWords = getSavedWords();
 
-         // and activate the panel
-         event.target.querySelector('definition-panel').classList.add('active');
-         // set the offsets
-         setPanelOffsets(event.target);
-      }
-
-      // click on panel X out
-      if (event.target.matches('.x-out-div, .x-out-div *')) {
-         updateCurrentlySelectedWord(event.target);
-         panelCloseOut(event.target.closest('definition-panel'));
-      }
-      
-      // click on definition panel bookmark
-      if (event.target.matches('.bookmark, .bookmark *')) {
-
-         let wordName = event.target.closest('definition-panel').dataset.word;
-         // note: this goes wider in scope and then back down because of ambiguity of what element exactly will be clicked, the div or the svg path
-         let $bookmark = event.target.closest('.tools').querySelector('.bookmark');
-         // get savedWords from session
-         let savedWords = JSON.parse(sessionStorage.getItem('savedWords')) || [];
-         
-         // REMOVE BOOKMARK
-         //  remove word from saved words list and deactivate the bookmark
-         // TODO we need to do error catching for trying to add the same word to the list multiple times
-         if ($bookmark.classList.contains('active')) {
-            savedWords = savedWords.filter(word => word.name !== wordName);
-            // then deactivate bookmark
-            $bookmark.classList.remove('active');
-            // if we are in the saved words panel we'll also want to deactive the corresponding bookmark in the #generate-words panel
-            if(event.target.closest('section').id == "saved-words") {
-               document.querySelector('#generated-words').querySelectorAll('word-tile').forEach((wordTile) => {
-                  if (wordTile.dataset.word == wordName) {  
-                     wordTile.querySelector('.bookmark').classList.remove('active');
-                  }
-               })
+   if ($bookmark.classList.contains('active')) {
+      // UN-SAVE
+      savedWords = savedWords.filter((word) => word.name !== wordName);
+      $bookmark.classList.remove('active');
+      // Un-saving from the saved list should also reset the bookmark on the matching generated word
+      if (inSavedList) {
+         document.querySelectorAll('#generated-words-list word-tile').forEach(($tile) => {
+            if ($tile.dataset.word === wordName) {
+               $tile.querySelector('.bookmark').classList.remove('active');
             }
-         }
-         // SAVE THE WORD
-         else {
-            // activate bookmark
-            $bookmark.classList.add('active');
-
-            
-            let $wordTile = event.target.closest('word-tile');
-            // create a deactivated clone
-            let $clone = $wordTile.cloneNode(true);
-            $clone.classList.remove('selected');
-            $clone.querySelector('definition-panel').classList.remove('active');
-            // create word object to save in Session storage
-            let wordObject = {'name': wordName, 'html' : $clone.outerHTML};
-            // add this wordObject to our savedWords
-            savedWords.push(wordObject);
-            // update bookmarkClassList
-         }
-         // update session
-         sessionStorage.setItem('savedWords', JSON.stringify(savedWords));
-
-         // if we're in #generated-words, immediately update #saved-words
-         if (event.target.closest('word-list').id === "generated-words-list") {
-            updateSavedWords();
-         }
-         // if we're in #saved-words, we want to wait until the panel closes to update #saved-words
-         else {
-            console.log("You clicked on the bookmark icon from inside saved-words");
-
-         }
+         });
       }
-
-      // TODO this doesn't deactiavte the bookmark on words in our word-list
-      if (event.target.matches('#clear-saved-words')) {
-         sessionStorage.removeItem('savedWords');
-         updateSavedWords();
-         $bookmarks = document.querySelectorAll('.bookmark');
-         $bookmarks.forEach((bookmark) => {
-            bookmark.classList.remove('active');
-         })
-
+   } else {
+      // SAVE: store a copy of the tile's HTML (with its bookmark already active) for the saved list
+      $bookmark.classList.add('active');
+      if (!savedWords.some((word) => word.name === wordName)) {
+         const $clone = $wordTile.cloneNode(true);
+         $clone.classList.remove('selected');
+         $clone.querySelector('definition-panel').classList.remove('active');
+         savedWords.push({ name: wordName, html: $clone.outerHTML });
       }
-   })
+   }
+   setSavedWords(savedWords);
 
-
-   let $incrementButtons = document.querySelectorAll('.increment');
-   $incrementButtons.forEach(function(item) {
-      item.addEventListener('click', function(event) {
-         event.preventDefault();
-         item.parentElement.querySelector('input').value++;
-      })
-   })
-
-   let $decrementButtons = document.querySelectorAll('.decrement');
-   $decrementButtons.forEach(function(item) {
-      item.addEventListener('click', function(event) {
-         event.preventDefault();
-         item.parentElement.querySelector('input').value--;
-      })
-   })
-
-
-})
-
-function panelCloseOut($panel){
-   // deactivate panel
-   $panel.classList.remove('active');
-   // if we are in the saved panel, update saved words
-   if ($panel.closest('word-list').id === "saved-words-list") {
+   // In the generated list, refresh the saved list right away.
+   // In the saved list, wait until the panel closes so the tile doesn't vanish mid-read.
+   if (!inSavedList) {
       updateSavedWords();
    }
 }
 
+function copySavedWords($button) {
+   const names = getSavedWords().map((word) => word.name);
+   if (names.length === 0 || !navigator.clipboard) return;
+   navigator.clipboard.writeText(names.join('\n'))
+      .then(() => {
+         $button.textContent = 'Copied';
+         setTimeout(() => { $button.textContent = 'Copy'; }, 1500);
+      })
+      .catch((error) => console.error('Could not copy saved words:', error));
+}
+
+function panelCloseOut($panel) {
+   $panel.classList.remove('active');
+   // Un-saved words in the saved list are only removed once their panel closes
+   if ($panel.closest('word-list').id === 'saved-words-list') {
+      updateSavedWords();
+   }
+}
+
+// Brings the saved-words list in line with localStorage: fades out tiles that are
+// no longer saved and appends tiles for newly saved words
 function updateSavedWords() {
-   console.log("updateSavedWords")
-   
-   const sessionSavedWordObjects = JSON.parse(sessionStorage.getItem('savedWords')) || [];
-   const sessionSavedWordNames = Array.from(sessionSavedWordObjects, sessionSavedWordObjects => sessionSavedWordObjects.name);
+   const savedWords = getSavedWords();
+   const savedWordNames = savedWords.map((word) => word.name);
 
-   // update "empty" class on the Section
-   const $savedWordsSection = document.querySelector('#saved-words');
-   if (sessionSavedWordObjects.length == 0) {
-      $savedWordsSection.classList.add('empty');
-   }
-   else {
-      $savedWordsSection.classList.remove('empty');
-   }
+   document.querySelector('#saved-words').classList.toggle('empty', savedWords.length === 0);
 
-   // compare current wordTiles to our list of sessionSavedWordNames
-   // remove any current wordTiles that don't match
-   let $wordTiles = $savedWordsSection.querySelectorAll('word-tile');
-   let $currentTileWordNames = [];
-   $wordTiles.forEach((wordTile) => {
-      // if this word-tile is not in our saved session words, we change the class to animate it and then remove it
-      if (!sessionSavedWordNames.includes(wordTile.dataset.word)) {
-         wordTile.classList.add('removed');
-         wordTile.addEventListener('transitionend', () => {
-            console.log("transition end")
-            wordTile.remove();
-         })
-      }
-      else {
-         $currentTileWordNames.push(wordTile.dataset.word)
-      }
-   })
-
-   // add any new elements from saveWords to our savedWordsList
    const $savedWordsList = document.querySelector('#saved-words-list');
-   sessionSavedWordObjects.forEach(function(word) {
-      if (!$currentTileWordNames.includes(word.name)){
+   const currentTileWordNames = [];
+   $savedWordsList.querySelectorAll('word-tile:not(.removed)').forEach(($wordTile) => {
+      if (savedWordNames.includes($wordTile.dataset.word)) {
+         currentTileWordNames.push($wordTile.dataset.word);
+      } else {
+         $wordTile.classList.add('removed');
+         // Remove the tile once its fade-out finishes. The timeout is a fallback for when the
+         // transition never runs, e.g. a tile added and removed within the same frame.
+         const removeTile = () => $wordTile.remove();
+         $wordTile.addEventListener('transitionend', removeTile, { once: true });
+         setTimeout(removeTile, 500);
+      }
+   });
+
+   savedWords.forEach((word) => {
+      if (!currentTileWordNames.includes(word.name)) {
          $savedWordsList.insertAdjacentHTML('beforeend', word.html);
       }
-   })
+   });
 }
 
 function processRandomWordData(data) {
-   // Empty currrent word-list
-   document.querySelector('#generated-words-list').innerHTML="";
-   // CREATE WORD TILES FOR EACH WORD IN OUR DATA
-   data.forEach(function(word) {
-      createWordTileAndDefinitionPanel(word);
-   })
+   const $generatedWordsList = document.querySelector('#generated-words-list');
+   const savedWordNames = getSavedWords().map((word) => word.name);
+   $generatedWordsList.innerHTML = "";
+   data.forEach((word) => {
+      const $wordTile = createWordTile(word);
+      // a word that is already saved should show its bookmark as active
+      if (savedWordNames.includes(word.word)) {
+         $wordTile.querySelector('.bookmark').classList.add('active');
+      }
+      $generatedWordsList.appendChild($wordTile);
+   });
 
-   // Get number of words for section heading
-   let numberOfWords = data.length;
-   document.getElementById('number-of-words').textContent = numberOfWords;
-
-   // If it was empty it's not anymore
-   document.querySelector('#generated-words').classList.remove('empty')
+   document.querySelector('#number-of-words').textContent = data.length;
+   document.querySelector('#generated-words').classList.remove('empty');
 }
 
-// Function to create a word tile from a word
-function createWordTileAndDefinitionPanel(word){
-   let $generatedWordsSection = document.querySelector('#generated-words');
-
-   // create <word-tile>
-   let wordTile = document.createElement('word-tile');
-   wordTile.innerText = word.word;
-   wordTile.dataset.word = word.word;
-   wordTile.setAttribute("tabindex", "0");
-
-   // definition panel
-   let panelHTML = createDefinitionPanel(word);
-   wordTile.insertAdjacentHTML('beforeend', panelHTML);
-   
-   $generatedWordsSection.querySelector('word-list').appendChild(wordTile);
+function createWordTile(word) {
+   const $wordTile = document.createElement('word-tile');
+   $wordTile.textContent = word.word;
+   $wordTile.dataset.word = word.word;
+   $wordTile.setAttribute("tabindex", "0");
+   $wordTile.insertAdjacentHTML('beforeend', createDefinitionPanel(word));
+   return $wordTile;
 }
 
+// Escapes text for safe insertion into an HTML string
+function escapeHTML(text) {
+   return String(text)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;');
+}
 
-// Given a JSON of word meanings, returns formatted HTML for Defintion Panel
-function createHTMLDefinitionList(meanings){
-   let response = ""
-   meanings.forEach(function(meaning) {
-      // get synonynms, if any
-      let synonyms = ""
+function createHTMLDefinitionList(meanings) {
+   return meanings.map((meaning) => {
+      let extras = "";
       if (meaning.example) {
-         synonyms += `<p>example: ${meaning.example} </p>`;
+         extras += `<p>example: ${escapeHTML(meaning.example)}</p>`;
       }
       if (meaning.synonyms.length > 0) {
-         synonyms += "<p>synonym(s): ";
-         // sloppy flag non-sense to get commas right
-         let first_flag = true;
-         meaning.synonyms.forEach(function(synonym) {
-            if (first_flag){
-               synonyms += `${synonym}`;
-               first_flag = false;
-            }
-            else {
-               synonyms += `, ${synonym}`;
-            }
-         })
-         synonyms += "</p>"
+         extras += `<p>synonym(s): ${meaning.synonyms.map(escapeHTML).join(', ')}</p>`;
       }
-      // construct response
-      response += `
+      return `
          <li>
-            <p>${meaning.speech_part}, ${meaning.definition}</p>
-            ${synonyms}
+            <p>${escapeHTML(meaning.speech_part)}, ${escapeHTML(meaning.definition)}</p>
+            ${extras}
          </li>
-      `
-   })
-   return response;
+      `;
+   }).join("");
 }
 
 function createDefinitionPanel(word) {
-   
-   // generate the HTML for the definition List
-   let definitionList = createHTMLDefinitionList(word.meanings);
-
-
    return `
-   <definition-panel data-word="${word.word}">
+   <definition-panel data-word="${escapeHTML(word.word)}">
       <div class="tools">
          <div class="x-out-div">
             <svg class="x-out-path" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" >
                <path  d="M1 1L31 31M1 31L31 1" stroke-width="2" stroke-linecap="round"/>
             </svg>
          </div>
-         
+
          <div class="bookmark">
             <svg class=" bookmark-svg" width="31" height="43" viewBox="0 0 31 43" fill="none" xmlns="http://www.w3.org/2000/svg">
                <path  d="M2.5 0.5H28.5C29.3284 0.5 30 1.17157 30 2V37.6688C30 39.0521 28.2868 39.6981 27.3734 38.6591L17.3776 27.2887C16.382 26.1562 14.618 26.1562 13.6224 27.2887L3.62657 38.6591C2.71323 39.6981 1 39.0521 1 37.6688V2C1 1.17157 1.67157 0.5 2.5 0.5Z"  stroke-linecap="square" stroke-linejoin="round"/>
             </svg>
-
          </div>
       </div>
-      <h3 class="attention-voice">${word.word}</h3>
+      <h3 class="attention-voice">${escapeHTML(word.word)}</h3>
       <ol class="definitions">
-         ${definitionList}
+         ${createHTMLDefinitionList(word.meanings)}
       </ol>
    </definition-panel>
-   
-   `;   
+   `;
 }
 
-function setPanelOffsets(wordTileTarget) {
-   let panel = wordTileTarget.querySelector('definition-panel');
+// Positions a tile's definition panel just below the tile, shifted left if it would overflow the list
+function setPanelOffsets($wordTile) {
+   const $panel = $wordTile.querySelector('definition-panel');
+   const wordTileRect = $wordTile.getBoundingClientRect();
+   const wordListRect = $wordTile.parentElement.getBoundingClientRect();
 
-   // let's get the offests to place the panel at
-   let wordTileRect = wordTileTarget.getBoundingClientRect();
-   let wordListRect = wordTileTarget.parentElement.getBoundingClientRect();
-   // yOffset is easy, we just want to get the distance from the top of the word-list to the bottom of the word-tile PLUS any additional gap
-   yGap = 12;
-   let yOffset = wordTileRect.bottom - wordListRect.top + yGap;
-   // set the yOffset
-   panel.style.top = yOffset + "px";
+   const yGap = 12;
+   $panel.style.top = (wordTileRect.bottom - wordListRect.top + yGap) + "px";
 
-   // xOffset is more complicated
-   let xOffset = 0;
-   // first we'll need the width at which want to draw the panel;
-   let panelStyle = window.getComputedStyle(panel);
-   let panelWidth = parseInt(panelStyle.getPropertyValue('width'), 10);
-   // get additional padding to add from <inner-column>
-   let additionalPadding = parseInt(window.getComputedStyle(document.querySelector('.word-sections inner-column')).getPropertyValue('padding-inline'))
-   // we want the defintition panel to start on the left side of the word-tile, unless there isn't enough room for the panel, in which case we want to place it exactly left enough to fit.
-   // if there's not enough room
+   const panelWidth = parseInt(window.getComputedStyle($panel).getPropertyValue('width'), 10);
+   let xOffset;
    if (wordListRect.right - wordTileRect.left < panelWidth) {
-      // xOffset is from left!
-      xOffset = wordListRect.right - wordListRect.left - panelWidth; 
+      // not enough room to the right: align the panel's right edge with the list's right edge
+      xOffset = wordListRect.right - wordListRect.left - panelWidth;
+   } else {
+      xOffset = wordTileRect.left - wordListRect.left;
    }
-   // otherwise there is enough room for it to fit 
-   else {
-      xOffset = wordTileRect.left - wordListRect.left; 
-   }
-
-   // now set the offset
-   panel.style.left = xOffset + "px";
+   $panel.style.left = xOffset + "px";
 }
 
-// function to removed the "selected" class from a word-tile and then add it to the newly selected word-tile
-// targetElement can be any element inside of a specific word-list
-function updateCurrentlySelectedWord(targetElement) {
-   // any other currently .selected?
-   console.log(targetElement);
-   let otherCurrentlySelectedTile = targetElement.closest('word-list').querySelector('.selected');
-   // if so remove it
-   if (otherCurrentlySelectedTile) {
-      otherCurrentlySelectedTile.classList.remove('selected');
-   }
-   // is event.target a word-tile? e.g. we might call this function when closing a defintion panel
-   if (targetElement) {
-      if (targetElement.tagName = 'word-tile')
-         {
-            // then we can add it to what was clicked
-            targetElement.classList.add('selected')
-         }
+// Moves the .selected highlight to the given tile. May also be passed some other element
+// inside a word list (e.g. a panel being closed), in which case it only clears the highlight.
+function updateCurrentlySelectedWord($targetElement) {
+   $targetElement.closest('word-list').querySelector('.selected')?.classList.remove('selected');
+   if ($targetElement.tagName === 'WORD-TILE') {
+      $targetElement.classList.add('selected');
    }
 }
 
 
+
+// INITIAL LOAD
+
+updateSavedWords();
+getRandomWords(optionsFromForm());

@@ -28,7 +28,7 @@ jobs:
           DROPLET_IP: ${{ secrets.DROPLET_IP }}
           DEPLOY_PATH: /var/www/randomwordgenerator.info
         run: |
-          # First sync all files except public/ and hapax-finder/ to the root deploy path
+          # Sync the whole repository to the deploy path
           rsync -avz --delete \
             --exclude=".git" \
             ./ root@$DROPLET_IP:$DEPLOY_PATH

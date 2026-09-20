@@ -1,6 +1,3 @@
-@import 'reset.css';
-@import 'setup.css';
-
 :root {
 	--neutral-0: 		#FFFFFF;
 	--neutral-20:		#FAFAFA;
@@ -17,13 +14,14 @@
 	--neutral-900:		#1A1A1A;
 	--neutral-1000:	#000000;
 
-	
+
 	/* MONOCHROME COLORS */
 	--bg-1: var(--neutral-0);
 	--bg-2: var(--neutral-50);
 	--ink: var(--neutral-1000);
 	--border: var(--neutral-600);
 	--drop-shadow: var(--neutral-400);
+	--scrollbar-thumb: var(--neutral-300);
 	--word-tile: var(--neutral-50);
 	--word-tile-selected: var(--neutral-600);
 	--word-tile-selected-text: var(--neutral-100);
@@ -44,95 +42,13 @@
 	--box-shadow-big: 10px 10px var(--drop-shadow);
 
 
-	/* --inner-column: 900px; */
-
 }
 
-body.serious.light{
-	color-scheme: light;
+/* THEMES
+   Two palettes (pink, blue) times two modes (light, dark) give four themes, each a pair of body
+   classes such as "pink dark". Every theme defines the same set of custom properties. */
 
-	--bg-1: #EEE8D5;
-	--bg-2: #FAF5E5;
-	--middle-tone: #94A1A1;
-	--subdued-ink: #586E75;
-	--ink: #073643;
-
-	--topbar-text: var(--ink);
-	--topbar-text: var(--subdued-ink);
-	--slider: var(--bg-1);
-	--slider-bg: var(--bg-2);
-
-	--border: var(--ink);
-	--drop-shadow: var(--middle-tone);
-	--word-sections-text: var(--ink);
-	--word-tile: var(--bg-2);
-	--word-tile-text: var(--ink);
-	--word-tile-selected: var(--ink);
-	--word-tile-selected-text: var(--bg-2);
-	/* --button-1 Generate button */
-	--button-1-bg: var(--bg-2);
-	--button-1-text: var(--ink);
-	/* --button-2 Reset button */
-	--button-2-bg: var(--subdued-ink);
-	--button-2-text: var(--bg-1);
-	--option-bg: var(--bg-2);
-	--option-text: var(--ink);
-	--option-selected-bg: var(--ink);
-	--option-selected-text: var(--bg-2);
-	--checkmark-bg: var(--bg-2);
-	--panel-bg: var(--bg-2);
-	--bookmark-label: var(--subdued-ink);
-	--bookmark-bg: var(--middle-tone);
-	--bookmark-active-bg: var(--ink);
-
-	--box-shadow-small: 5px 5px var(--drop-shadow);
-	--box-shadow-big: 10px 10px var(--drop-shadow);
-}
-
-body.serious.dark{
-	color-scheme: dark;
-
-	--bg-1: #002B37;
-	--bg-2: #083F4E;
-	--middle-tone: #586E75;
-	--subdued-ink: #94A1A1;
-	--ink: #FDF6E3;
-	--accent: #6C71C4;
-
-	--topbar-text: var(--ink);
-	--topbar-text: var(--subdued-ink);
-	--slider: var(--bg-1);
-	--slider-bg: var(--bg-2);
-
-	--border: var(--middle-tone);
-	--drop-shadow: var(--middle-tone);
-	--word-sections-text: var(--ink);
-	--word-tile: var(--bg-2);
-	--word-tile-text: var(--ink);
-	--word-tile-selected: var(--ink);
-	--word-tile-selected-text: var(--bg-2);
-	/* --button-1 Generate button */
-	--button-1-bg: var(--accent);
-	--button-1-text: var(--ink);
-	/* --button-2 Reset button */
-	--button-2-bg: var(--subdued-ink);
-	--button-2-text: var(--bg-1);
-	--option-bg: var(--bg-1);
-	--option-text: var(--ink);
-	--option-selected-bg: var(--accent);
-	--option-selected-text: var(--ink);
-	--input-field: var(--bg-1);
-	--checkmark-bg: var(--bg-1);
-	--panel-bg: var(--bg-1);
-	--bookmark-label: var(--subdued-ink);
-	--bookmark-bg: var(--bg-1);
-	--bookmark-active-bg: var(--accent);
-
-	--box-shadow-small: 5px 5px var(--drop-shadow);
-	--box-shadow-big: 10px 10px var(--drop-shadow);
-}
-
-body.cute.light{
+body.pink.light{
 	color-scheme: light;
 
 	--bg-1: #FDF7E7;
@@ -142,13 +58,10 @@ body.cute.light{
 	--ink: #002B37;
 	--accent: #FFED94;
 
-	--topbar-text: var(--ink);
-	--topbar-text: var(--subdued-ink);
-	--slider: var(--bg-1);
-	--slider-bg: var(--bg-2);
 
 	--border: var(--ink);
 	--drop-shadow: var(--middle-tone);
+	--scrollbar-thumb: var(--middle-tone);
 	--word-sections-text: var(--ink);
 	--word-tile: var(--bg-2);
 	--word-tile-text: var(--ink);
@@ -179,21 +92,19 @@ body.cute.light{
 	}
 }
 
-body.cute.dark{
+body.blue.light{
 	color-scheme: light;
-	
+
 	--bg-1: #506CE1;
 	--bg-2: #E0E1F7;
 	--subdued-ink: #637BE4;
 	--ink: #2C4FDB;
 	--accent: #F9D383;
 
-	--topbar-text: var(--bg-2);
-	--slider: var(--bg-1);
-	--slider-bg: var(--bg-2);
 
 	--border: var(--ink);
 	--drop-shadow: var(--ink);
+	--scrollbar-thumb: var(--subdued-ink);
 	--word-sections-text: var(--bg-2);
 	--word-tile: var(--bg-2);
 	--word-tile-text: var(--ink);
@@ -225,6 +136,95 @@ body.cute.dark{
 	}
 }
 
+/* Dark surfaces in the blue palette's family, with the old blue kept for borders and shadows. */
+body.blue.dark{
+	color-scheme: dark;
+
+	--bg-1: #1A2260;        /* raised surfaces: the word sections */
+	--bg-2: #0F1436;        /* the page */
+	--bg-3: #2A3583;        /* tiles, options, inputs and panels: one step lighter again */
+	--middle-tone: #506CE1; /* the old dark theme's blue, now used for borders and shadows */
+	--subdued-ink: #8A9BEF;
+	--ink: #E0E1F7;
+	--accent: #F9D383;
+	--accent-text: #1A2260; /* text on top of the accent */
+
+	--border: var(--middle-tone);
+	--drop-shadow: var(--middle-tone);
+	--scrollbar-thumb: var(--middle-tone);
+	--word-sections-text: var(--ink);
+	--word-tile: var(--bg-3);
+	--word-tile-text: var(--ink);
+	--word-tile-selected: var(--accent);
+	--word-tile-selected-text: var(--accent-text);
+	/* --button-1 Generate button */
+	--button-1-bg: var(--accent);
+	--button-1-text: var(--accent-text);
+	/* --button-2 Reset button */
+	--button-2-bg: var(--bg-3);
+	--button-2-text: var(--ink);
+	--option-bg: var(--bg-3);
+	--option-text: var(--ink);
+	--option-selected-bg: var(--accent);
+	--option-selected-text: var(--accent-text);
+	--input-field: var(--bg-3);
+	--checkmark-bg: var(--bg-3);
+	--panel-bg: var(--bg-3);
+	--bookmark-label: var(--subdued-ink);
+	--bookmark-bg: var(--bg-3);
+	--bookmark-active-bg: var(--accent);
+
+	--box-shadow-small: 5px 5px var(--drop-shadow);
+	--box-shadow-big: 10px 10px var(--drop-shadow);
+
+	#reset {
+		box-shadow: 5px 5px var(--subdued-ink);
+		border: 1px solid var(--subdued-ink);
+	}
+}
+
+body.pink.dark{
+	color-scheme: dark;
+
+	--bg-1: #3A212B;        /* raised surfaces: the word sections */
+	--bg-2: #25141B;        /* the page: a deep plum-rose */
+	--bg-3: #533140;        /* tiles, options, inputs and panels: one step lighter again */
+	--middle-tone: #8A536C; /* dusty rose for outlines and shadows */
+	--peach: #E7C2AC;       /* the light theme's peach, now secondary text */
+	--subdued-ink: var(--peach);
+	--ink: #FDF7E7;         /* the light theme's cream, now the text */
+	--accent: #EE9EAB;      /* soft rose */
+	--accent-text: #3A2126; /* text on the accent */
+
+	--border: var(--middle-tone);
+	--drop-shadow: var(--middle-tone);
+	--scrollbar-thumb: var(--middle-tone);
+	--word-sections-text: var(--ink);
+	--word-tile: var(--bg-3);
+	--word-tile-text: var(--ink);
+	--word-tile-selected: var(--accent);
+	--word-tile-selected-text: var(--accent-text);
+	/* --button-1 Generate button */
+	--button-1-bg: var(--accent);
+	--button-1-text: var(--accent-text);
+	/* --button-2 Reset button */
+	--button-2-bg: var(--bg-3);
+	--button-2-text: var(--ink);
+	--option-bg: var(--bg-3);
+	--option-text: var(--ink);
+	--option-selected-bg: var(--accent);
+	--option-selected-text: var(--accent-text);
+	--input-field: var(--bg-3);
+	--checkmark-bg: var(--bg-3);
+	--panel-bg: var(--bg-3);
+	--bookmark-label: var(--subdued-ink);
+	--bookmark-bg: var(--bg-3);
+	--bookmark-active-bg: var(--accent);
+
+	--box-shadow-small: 5px 5px var(--drop-shadow);
+	--box-shadow-big: 10px 10px var(--drop-shadow);
+}
+
 body {
 	background-color: var(--bg-2);
 	font-family: "Roboto Mono", monospace;
@@ -232,87 +232,48 @@ body {
 	display: flex;
 	flex-direction: column;
 	color: var(--ink);
+	scrollbar-color: var(--scrollbar-thumb) transparent;
 	transition: background-color var(--color-transition), color var(--color-transition);
 }
 
+/* SCROLLBARS */
+/* Thin scrollbars in a theme colour (--scrollbar-thumb, set per theme) on a
+   transparent track. scrollbar-color is set on body and inherits. The standard
+   properties cover Chrome, Firefox and Safari 26.2+; the ::-webkit-scrollbar
+   rules are a fallback for older Safari. Chrome ignores them once the standard
+   properties are set. */
+form,
+#results,
+definition-panel {
+	scrollbar-width: thin;
+}
+
+@supports not (scrollbar-color: auto) {
+	:is(form, #results, definition-panel)::-webkit-scrollbar {
+		width: 8px;
+		height: 8px;
+	}
+	:is(form, #results, definition-panel)::-webkit-scrollbar-track {
+		background: transparent;
+	}
+	:is(form, #results, definition-panel)::-webkit-scrollbar-thumb {
+		background-color: var(--scrollbar-thumb);
+		border-radius: 999px;
+	}
+}
+
 inner-column {
-	/* max-width: var(--inner-column); */
 	max-width: 100%;
 	margin-inline: auto;
 	padding-inline: 10px;
 }
 
 header {
-	/* padding-block: 0rem; */
-	.topbar {
-		background-color: var(--bg-1);
-		padding-block: .5rem;
-		color: var(--topbar-text);
-		transition: background-color var(--color-transition), color var(--color-transition);
-
-		.option-sliders {
-			display: flex;
-			justify-content: space-between;
-			/* align-items: center; */
-			font-size: .8rem;
-
-			.option-slider {
-				display: flex;
-				align-items: center;
-				gap: 8px;
-
-				.switch-container {
-					display: inline-block;
-					height: calc(var(--slider-width) + 8px);
-					width: calc(var(--slider-width) * 2 + 8px);
-					position: relative;
-				 }
-				 
-				 .switch-container input {
-					display:none;
-				 }
-				 
-				 .slider {
-					background-color: var(--slider-bg);
-					bottom: 0;
-					cursor: pointer;
-					left: 0;
-					position: absolute;
-					right: 0;
-					top: 0;
-					transition: background-color var(--color-transition), all .4s;
-				 }
-				 
-				 .slider:before {
-					background-color: var(--slider);
-					bottom: 4px;
-					content: "";
-					height: var(--slider-width);
-					aspect-ratio: 1/1;
-					left: 4px;
-					position: absolute;
-					transition: .4s;
-				 }
-				 
-				 input:checked + .slider {
-					background-color: var(--);
-				 }
-				 
-				 input:checked + .slider:before {
-					transform: translateX(100%);
-				 }
-				 
-				 .slider.round {
-					border-radius: 34px;
-				 }
-				 
-				 .slider.round:before {
-					border-radius: 50%;
-				 }
-			}
-
-			
-		}
+	inner-column {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
 	}
 
 	.title {
@@ -320,7 +281,7 @@ header {
 
 		.title-word-cursor-container {
 			position: relative;
-			
+
 			.cursor {
 				display: inline-block;
 				position: absolute;
@@ -332,12 +293,84 @@ header {
 				animation: blink 1s step-start infinite;
 				transition: none;
 			}
+		}
+	}
 
-			
+	/* holds the palette switch and the mode switch */
+	.theme-toggles {
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		flex-wrap: wrap; /* on narrow screens the second switch drops under the first */
+		gap: .75rem 1.5rem;
+	}
 
-			
-	
-			
+	.theme-toggle {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		color: var(--subdued-ink);
+		transition: color var(--color-transition);
+
+		/* switch labels, drawn in the label colour: a rising stroke and a wave for the warm and
+		   cool palettes, sol and luna for light and dark */
+		svg {
+			width: 1rem;
+			height: 1rem;
+			flex-shrink: 0;
+		}
+
+		.switch-container {
+			display: inline-block;
+			height: calc(var(--slider-width) + 8px);
+			width: calc(var(--slider-width) * 2 + 8px);
+			position: relative;
+		}
+
+		.switch-container input {
+			/* visually hidden, but still focusable so the toggle works from the keyboard */
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			margin: -1px;
+			padding: 0;
+			overflow: hidden;
+			clip-path: inset(50%);
+			white-space: nowrap;
+			border: 0;
+		}
+
+		/* the track: an outlined pill, like the option buttons */
+		.slider {
+			position: absolute;
+			inset: 0;
+			cursor: pointer;
+			border-radius: 34px;
+			background-color: var(--option-bg);
+			border: 1px solid var(--border);
+			transition: background-color var(--color-transition), border-color var(--color-transition);
+		}
+
+		/* the knob */
+		.slider::before {
+			content: "";
+			position: absolute;
+			top: 3px;
+			left: 3px;
+			height: var(--slider-width);
+			aspect-ratio: 1 / 1;
+			border-radius: 50%;
+			background-color: var(--option-text); /* the knob sits on an --option-bg track */
+			transition: transform .4s, background-color var(--color-transition);
+		}
+
+		input:checked + .slider::before {
+			transform: translateX(100%);
+		}
+
+		input:focus-visible + .slider {
+			outline: 2px solid var(--ink);
+			outline-offset: 2px;
 		}
 	}
 }
@@ -353,15 +386,9 @@ main {
 }
 
 form {
-	/* max-width: 600px;
-	margin-inline: auto; */
 
 
 	padding-top: 1.5rem;
-
-	.checkmark {
-		stroke: blue;
-	}
 
 	.options {
 		legend {
@@ -402,26 +429,17 @@ form {
 			&:has(input[type="checkbox"]:checked) {
 
 				&::before {
-					/* content: url(../images/checkmark.svg); */
-					/* instead of SVG, just use font... */
+					/* a text checkmark rather than an SVG, so it can be recoloured with color */
 					content: '✓';
 					font-family: sans-serif;
 					font-weight: 100;
 					font-size: .7rem;
 					color: var(--ink);
 
-					/* trying mask solution for changing stroke color */
-					/* but it doesn't let you set a background on this pseudo-element, separately */
-					/* -webkit-mask: url(../images/checkmark.svg);
-					mask: url(../images/checkmark.svg);
-					-webkit-mask-size: cover;
-					background: red;
-  					mask-size: cover; */
-				
+
 					display: flex;
 					justify-content: center;
 					align-items: center;
-					width: 8px;
 					position: absolute;
 					right: 0px;
 					bottom: 0px;
@@ -431,25 +449,18 @@ form {
 					border-radius: 50%;
 					border: 1px solid var(--border);
 					transition: background-color var(--color-transition), color var(--color-transition), border var(--color-transition);
-					
+
 				}
 			}
 
 
-			/* &:hover {
-				background-color: var(--option-selected-bg);
-			} */
 		}
-		
-		/* this de-selects other checkboxes while hovering */
-		/* &:has(label:hover) label:not(:hover) {
-			background-color: var(--option-bg);
-		} */
+
 	}
 
 
 	#filters {
-		padding-top: 2rem; 
+		padding-top: 2rem;
 
 		summary {
 			list-style: none;
@@ -462,18 +473,8 @@ form {
 			display: none;
 		}
 
-		
-
-		/* summary::after {
-			content: url(../images/option-arrow.svg);
-			padding-left: .5rem;
-			transform: rotate(0);
-			transform-origin: .2rem 50%;
-			transition: .25s transform ease
-		} */
 
 		.option-arrow-svg {
-			/* border: 2px solid red; */
 			width: fit-content;
 			transform: rotate(0);
 			transition: .25s transform ease;
@@ -483,7 +484,7 @@ form {
 				transition: stroke var(--color-transition);
 			}
 		}
-		
+
 
 		fieldset {
 			margin-top: 1.5rem;
@@ -520,7 +521,7 @@ form {
 				align-items: center;
 
 				svg path {
-					stroke: var(--ink);
+					stroke: currentColor; /* follows the button text colour, including on hover */
 					transition: stroke var(--color-transition);
 				}
 				@media(hover: hover) and (pointer: fine) {
@@ -544,11 +545,12 @@ form {
 				input {
 					all: unset;
 					background-color: var(--input-field);
+					color: var(--option-text); /* the field sits on the same surface as the option pills */
 					font-family: "Roboto Mono", monospace;
 					text-align: center;
 					border: 1px solid var(--border);
 					height: 44px;
-					width: 44px; 
+					width: 44px;
 					border-radius: var(--border-radius-small);
 					transition: background-color var(--color-transition), border var(--color-transition);
 				}
@@ -580,7 +582,7 @@ form {
 			flex-grow: 2;
 		}
 
-		
+
 		#generate {
 			background-color: var(--button-1-bg);
 			color: var(--button-1-text);
@@ -589,7 +591,7 @@ form {
 
 			background-color: var(--button-2-bg);
 			color: var(--button-2-text);
-		
+
 		}
 
 		@media(hover: hover) and (pointer: fine) {
@@ -597,7 +599,6 @@ form {
 			#reset:hover {
 				transform: translate(5px, 5px);
 				box-shadow: 0 0 var(--drop-shadow);
-				/* background-color: var(--border); */
 			}
 		}
 	}
@@ -624,10 +625,6 @@ button {
 		&:hover {
 			transform: translate(5px, 5px);
 			box-shadow: 0 0 var(--drop-shadow);
-			/* background-color: var(--option-selected-bg); */
-			/* color: var(--bg-2); */
-			/* font-weight: 900; */
-			/* letter-spacing: 3px; */
 		}
 	}
 
@@ -647,21 +644,7 @@ button {
 	border-radius: 20px;
 	padding-block: 3rem;
 	background-color: var(--bg-1);
-	visibility: visible;
-	/* this is for the transition as it appears */
-	transition: transform .3s ease-out, visibilty 0s, background-color var(--color-transition), color var(--color-transition);
-}
-#saved-words.empty{
-	/* visibility: hidden; */
-	/* display: none; */
-	/* this is for the transition as it disappears */
-	/* transition: transform 1s ease-in 1s, visibility 0s linear 3s; */
-	
-}
-#generated-words.empty{
-	/* this is for the transition as it disappears */
-	/* transition: transform 1s ease-in .5s, visibility 0s linear 3s; */
-	/* visibility: hidden; */
+	transition: background-color var(--color-transition), color var(--color-transition);
 }
 .word-sections + .word-sections {
 	margin-top: 3rem;
@@ -681,8 +664,7 @@ word-list {
 		padding: 10px;
 		border-radius: var(--border-radius-small);
 		opacity: 1;
-		transition: opacity 1s;
-		transition: background-color var(--color-transition), color var(--color-transition);
+		transition: opacity var(--color-transition), background-color var(--color-transition), color var(--color-transition);
 
 		@media(hover: hover) and (pointer: fine) {
 			&:hover {
@@ -708,13 +690,13 @@ definition-panel {
 
 	width: min(400px, 90%);
 	max-height: 400px;
-  
-	overflow-y: scroll;
+
+	overflow-y: auto;
 
 	z-index: 8;
-	
+
 	background-color: var(--panel-bg);
-	color: var(--ink);
+	color: var(--panel-text, var(--ink)); /* themes may set --panel-text; defaults to --ink */
 	border: 1px solid var(--border);
 	border-radius: var(--border-radius-small);
 
@@ -723,7 +705,7 @@ definition-panel {
 	padding-bottom: 64px;
 
 	box-shadow: var(--box-shadow-big);
-	transition: box-shadox var(--color-transition), color var(--color-transition), background-color, var(--color-transition);
+	transition: box-shadow var(--color-transition), color var(--color-transition), background-color var(--color-transition);
 
 
 	h3 {
@@ -734,7 +716,7 @@ definition-panel {
 		display: flex;
 		justify-content: space-between;
 
-		
+
 		.x-out-div {
 			cursor: pointer;
 			height: 30px;
@@ -748,12 +730,11 @@ definition-panel {
 		}
 		.bookmark {
 			display: flex;
-		
+
 			.bookmark-svg {
 				min-width: 31px;
 				fill: var(--bookmark-bg);
 				stroke: var(--border);
-				transition: .2s;
 				transition: fill var(--color-transition), stroke var(--color-transition);
 
 			}
@@ -785,9 +766,6 @@ definition-panel {
 					}
 				}
 				&.active:hover {
-					/* .bookmark-svg {
-						fill: var(--bg-2);
-					} */
 
 					&::before {
 						content: "Remove?";
@@ -799,15 +777,14 @@ definition-panel {
 	}
 
 	.definitions {
-		list-style: decimal;
 		list-style-type: decimal;
 		padding-left: 1.8rem;
 		line-height: 1.4;
-		
+
 		li + li {
 			margin-top: 1rem;
 		}
-		
+
 		p + p {
 			margin-top: .5rem;
 		}
@@ -823,7 +800,7 @@ definition-panel {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		
+
 
 		.tools {
 			font-size: 1rem;
@@ -835,22 +812,18 @@ definition-panel {
 			#clear-saved-words{
 				background-color: var(--button-2-bg);
 				color: var(--button-2-text);
-				/* transition: background-color var(--color-transition), color var(--color-transition); */
 			}
 			#copy-saved-words {
 				background-color: var(--button-1-bg);
 				color: var(--button-1-text);
-				/* transition: background-color var(--color-transition), color var(--color-transition); */
 			}
-			
+
 			button {
 				padding-inline: 11px;
 			}
 		}
 	}
 }
-
-
 
 
 /* TYPOGRAPHY */
@@ -882,8 +855,8 @@ definition-panel {
 	body {
 		display: grid;
 		/* TODO: this could be fine-tuned a little better */
-		
-		max-width: 2000;
+
+		max-width: 2000px;
 		/* disgustingly complicated */
 		/* The gist is: left-column starts at 400, gains 50% of all width after 1020, maxes out at 600, right column attempts to account for all the difference */
 		/* right column math: */
@@ -902,20 +875,12 @@ definition-panel {
 	header {
 		grid-column: 1 / span 2;
 		height: min-content;
-		
-		/* display: grid;
-		grid-template-columns: subgrid;
-		
-		inner-column {
-			width: 100%;
-		} */
-
-		.topbar {
-			padding-inline: var(--wide-margin);
-		}
 
 		.title {
 			padding-left: var(--wide-margin);
+		}
+		.theme-toggles {
+			padding-right: var(--wide-margin);
 		}
 	}
 
@@ -934,8 +899,10 @@ definition-panel {
 		padding-left: var(--wide-margin);
 		padding-right: 5px;
 		height: 100%;
-		overflow-y: scroll;
-		
+		overflow-y: auto;
+		/* reserve the gutter so the layout does not shift when content starts to overflow */
+		scrollbar-gutter: stable;
+
 
 	}
 
@@ -943,32 +910,26 @@ definition-panel {
 	#results {
 		grid-column: 2;
 		width: 100%;
+		height: 100%;
 		padding-right: var(--wide-margin);
 		padding-bottom: 5rem;
-		overflow: scroll;
+		overflow-y: auto;
+		/* stable gutter also stops Chrome sizing this column to its content on first layout */
+		scrollbar-gutter: stable;
 
 		inner-column{
 			padding-inline: 2rem;
 		}
-		
+
 	}
 
-	/* #saved-words.empty{
-		transform: translateY(+100vh);
-
-		
-	}
-	#generated-words.empty{
-		transform: translateY(-100vh);
-
-	} */
 
 }
 
 
 @media (min-width: 2000px) {
 	body {
-		
+
 		max-width: 3600px;
 		/* disgustingly complicated */
 		/* The gist is: left-column starts at 400, gains 50% of all width after 1020, maxes out at 600, right column attempts to account for all the difference */
@@ -987,38 +948,17 @@ definition-panel {
 			grid-column: 1 / span 5;
 			display: grid;
 			grid-template-columns: subgrid;
+			/* a subgrid's own gap would override the page grid's gutters, so hand them back */
+			gap: normal;
+			align-items: center;
 
 			.title {
 				grid-column: 2;
 			}
-		}
-		
-
-		.topbar {
-			grid-column: 1 / span 5;
-			display: grid;
-			grid-template-columns: subgrid;
-
-			inner-column {
-				grid-column: 1 / span 5;
-				display: grid;
-				grid-template-columns: subgrid;
-
-				.option-sliders {
-					grid-column: 1 / span 5;
-					display: grid;
-					grid-template-columns: subgrid;
-
-					.option-slider:first-child {
-						grid-column: 2;
-					}
-					.option-slider:last-child {
-						grid-column: 4;
-						justify-self: end;
-					}
-				}
+			.theme-toggles {
+				grid-column: 4;
+				justify-self: end;
 			}
-
 		}
 	}
 
@@ -1036,7 +976,7 @@ definition-panel {
 		grid-template-columns: subgrid;
 
 		#generated-words {
-			
+
 			grid-column: 1 / span 1;
 		}
 
@@ -1056,4 +996,3 @@ definition-panel {
 
 
 }
-
