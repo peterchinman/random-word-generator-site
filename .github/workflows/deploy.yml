@@ -27,34 +27,48 @@ jobs:
         env:
           DROPLET_IP: ${{ secrets.DROPLET_IP }}
           DEPLOY_PATH: /var/www/randomwordgenerator.info
+          RELEASE_URL: https://github.com/${{ github.repository }}/releases/download
         run: |
           # Stamp the asset links with this commit's hash so browsers and Cloudflare
           # fetch fresh CSS and JS after every deploy instead of serving cached copies
           sed -i "s/?v=dev/?v=${GITHUB_SHA::8}/g" public/index.html
           grep -c "?v=${GITHUB_SHA::8}" public/index.html
 
-          # Sync the whole repository to the deploy path
+          # Sync the repository to the deploy path. The dictionary is not in the
+          # repository (it is a release asset, fetched below), so it is excluded here,
+          # otherwise --delete would remove the copy already on the server.
           rsync -avz --delete \
             --exclude=".git" \
+            --exclude="database/dictionary.db" \
+            --exclude="database/dictionary.db.release" \
             ./ root@$DROPLET_IP:$DEPLOY_PATH
-      
-          # SSH into the server for post-deployment tasks
-          ssh root@$DROPLET_IP "\
+
+          # Post-deployment tasks on the server. The script is sent on stdin, unexpanded
+          # (quoted heredoc), with the values it needs passed as environment variables.
+          ssh root@$DROPLET_IP "DEPLOY_PATH='$DEPLOY_PATH' RELEASE_URL='$RELEASE_URL' bash -s" <<'REMOTE'
+            set -e
+            cd "$DEPLOY_PATH"
+
+            # Fetch the dictionary named in database/RELEASE, unless that release is
+            # already on the server (its tag is remembered in dictionary.db.release).
+            TAG=$(cat database/RELEASE)
+            if [ "$(cat database/dictionary.db.release 2>/dev/null)" != "$TAG" ]; then
+              echo "Downloading dictionary.db from release $TAG"
+              curl -fsSL --retry 3 -o database/dictionary.db.download "$RELEASE_URL/$TAG/dictionary.db"
+              mv database/dictionary.db.download database/dictionary.db
+              echo "$TAG" > database/dictionary.db.release
+            fi
+
             # Remove existing public_html if it's not a symlink
-            if [ -d $DEPLOY_PATH/public_html ] && [ ! -L $DEPLOY_PATH/public_html ]; then
-              rm -rf $DEPLOY_PATH/public_html
+            if [ -d public_html ] && [ ! -L public_html ]; then
+              rm -rf public_html
             fi
 
             # Re-create the symlink from public_html to public
-            ln -sf $DEPLOY_PATH/public $DEPLOY_PATH/public_html
-            
-            # Install dependencies using Composer
-            if [ -f $DEPLOY_PATH/composer.json ]; then
-              cd $DEPLOY_PATH
-              composer install --no-interaction --no-dev --optimize-autoloader
-            fi
-      
+            ln -sfn "$DEPLOY_PATH/public" public_html
+
             # Set permissions and reload the server
-            chown -R www-data:www-data $DEPLOY_PATH && \
-            chmod -R 755 $DEPLOY_PATH && \
-            systemctl reload apache2"
+            chown -R www-data:www-data "$DEPLOY_PATH"
+            chmod -R 755 "$DEPLOY_PATH"
+            systemctl reload apache2
+          REMOTE

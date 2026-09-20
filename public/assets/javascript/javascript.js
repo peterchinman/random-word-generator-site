@@ -88,18 +88,33 @@ function optionsFromForm() {
       partsOfSpeech: formData.getAll('parts-of-speech'),
       minWordLength: formData.get('min-word-length'),
       maxWordLength: formData.get('max-word-length'),
+      tiers: selectedTiers(),
+      include: formData.getAll('include'),
    };
 }
 
+// The Options pills, in the order their flags go into the query string. Each is sent as 1
+// if its pill is checked and 0 if not, so the string never depends on the API's own defaults.
+// The API's other flags (pointers, nonascii) have no pill and are left to their defaults.
+const INCLUDE_FLAGS = ['multiword', 'hyphenated', 'apostrophe', 'capitalized', 'archaic', 'technical'];
+
 // The API query string for a set of options. Missing or empty values are normalised so that
 // the same settings always give the same string (the prefetched batch is keyed on it).
-function wordQuery({ numberOfWords, partsOfSpeech = [], minWordLength, maxWordLength } = {}) {
-   return new URLSearchParams({
+// An empty tiers list is sent as is: the API then falls back to its default tiers.
+function wordQuery({
+   numberOfWords, partsOfSpeech = [], minWordLength, maxWordLength, tiers = [], include = [],
+} = {}) {
+   const params = new URLSearchParams({
       numberOfWords: Number(numberOfWords) || 25,
       partsOfSpeech: partsOfSpeech.join(','),
       minWordLength: Number(minWordLength) || 0,
       maxWordLength: Number(maxWordLength) || 0,
-   }).toString();
+      tiers: tiers.join(','),
+   });
+   for (const flag of INCLUDE_FLAGS) {
+      params.set(flag, include.includes(flag) ? 1 : 0);
+   }
+   return params.toString();
 }
 
 function fetchWords(query) {
@@ -140,6 +155,68 @@ function getRandomWords(options) {
       })
       .catch((error) => console.error('Error fetching words:', error));
 }
+
+// RARENESS SLIDER
+// Two range inputs lie on top of each other to make the two thumbs; only the thumbs take the
+// pointer. Either thumb can be dragged past the other, so the chosen tiers always run from the
+// lower value to the higher and neither thumb can get stuck under the other. The tiers
+// themselves (API code, display name, example words) are the options of #tiers in index.html.
+
+const TIERS = [...document.querySelectorAll('#tiers option')].map(($option) => ({
+   code: $option.value,
+   name: $option.label,
+   examples: $option.dataset.examples,
+}));
+const $rareness = document.querySelector('#rareness');
+const $slider = $rareness.querySelector('.slider');
+const $thumbs = $slider.querySelectorAll('input[type="range"]');
+
+$thumbs.forEach(($thumb) => { $thumb.max = TIERS.length - 1; });
+$slider.style.setProperty('--steps', TIERS.length - 1);
+
+// one tick mark on the track per tier
+const $ticks = document.createElement('div');
+$ticks.className = 'ticks';
+TIERS.forEach((tier, index) => {
+   const $tick = document.createElement('span');
+   $tick.style.setProperty('--i', index);
+   $ticks.append($tick);
+});
+$slider.querySelector('.track').after($ticks);
+
+// The chosen tiers as [lowest index, highest index]
+function tierRange() {
+   const values = [...$thumbs].map(($thumb) => Number($thumb.value));
+   return [Math.min(...values), Math.max(...values)];
+}
+
+// The API codes of the chosen tiers, least rare first
+function selectedTiers() {
+   const [low, high] = tierRange();
+   return TIERS.slice(low, high + 1).map((tier) => tier.code);
+}
+
+// Brings the filled stretch of track and the readout in line with the thumbs
+function updateRareness() {
+   const [low, high] = tierRange();
+   $slider.style.setProperty('--low', low);
+   $slider.style.setProperty('--high', high);
+   const $from = $rareness.querySelector('.from');
+   const $to = $rareness.querySelector('.to');
+   $from.querySelector('.preposition').textContent = low === high ? 'only' : 'from';
+   $from.querySelector('.tier-name').textContent = TIERS[low].name;
+   $from.querySelector('.examples').textContent = TIERS[low].examples;
+   $to.querySelector('.tier-name').textContent = TIERS[high].name;
+   $to.querySelector('.examples').textContent = TIERS[high].examples;
+   $to.hidden = low === high;
+}
+
+$slider.addEventListener('input', updateRareness);
+// a form reset puts the thumbs back after the reset event has fired, hence the timeout
+$form.addEventListener('reset', () => setTimeout(updateRareness));
+updateRareness();
+
+
 
 // Open the Filters section automatically on wide screens.
 // If you change this breakpoint, also change it in the CSS media query.

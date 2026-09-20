@@ -471,6 +471,61 @@ form {
 
 		}
 
+		/* a pill group on a two-column grid, so every pill is the same width whatever its text */
+		&.columns-2 {
+			display: grid;
+			grid-template-columns: repeat(2, 1fr);
+			label {
+				padding-inline: 8px;
+			}
+		}
+
+		/* a pill's example words, in a bubble above it while it is hovered or keyboard-focused */
+		label[data-examples] {
+			&::after {
+				content: attr(data-examples);
+				position: absolute;
+				bottom: calc(100% + 6px);
+				left: 50%;
+				transform: translateX(-50%);
+				width: max-content;
+				padding: 6px 10px;
+				border: 1px solid var(--border);
+				border-radius: var(--border-radius-small);
+				background-color: var(--option-bg);
+				color: var(--ink);
+				font-size: .75rem;
+				line-height: 1.3;
+				z-index: 1;
+				pointer-events: none;
+				opacity: 0;
+				transition: opacity .15s;
+			}
+			&:has(input:focus-visible)::after {
+				opacity: 1;
+			}
+			@media (hover: hover) and (pointer: fine) {
+				&:hover::after {
+					opacity: 1;
+				}
+			}
+		}
+		/* bubbles hug the outer edge of their column so they stay inside the form */
+		&.columns-2 label:nth-of-type(odd)::after {
+			left: 0;
+			transform: none;
+		}
+		&.columns-2 label:nth-of-type(even)::after {
+			left: auto;
+			right: 0;
+			transform: none;
+		}
+
+	}
+
+	/* one bubble at a time: while any pill is hovered, a keyboard-focused pill's bubble is hidden */
+	&:has(label[data-examples]:hover) label[data-examples]:not(:hover)::after {
+		opacity: 0;
 	}
 
 
@@ -501,13 +556,147 @@ form {
 		}
 
 
-		fieldset {
+		fieldset, details {
 			margin-top: 1.5rem;
+		}
+		/* a collapsed group inside Filters: its summary stands where a legend would */
+		#options fieldset {
+			margin-top: 1rem;
+		}
+
+		/* a section's caret turns to point down while that section is open */
+		&[open] > summary .option-arrow-svg,
+		details[open] > summary .option-arrow-svg {
+			transform: rotate(90deg);
 		}
 
 	}
-	#filters[open] .option-arrow-svg {
-		transform: rotate(90deg);
+
+	/* the rareness slider: two range inputs share one track, and only their thumbs take the pointer */
+	.range {
+		legend {
+			margin-bottom: 1rem;
+		}
+
+		.slider {
+			--thumb: 28px;
+			position: relative;
+			height: var(--thumb);
+			/* --steps, --low and --high are set by javascript.js: the last tier index and the two chosen ones */
+
+			/* the thumbs' centres travel from half a thumb in from each end, so the track and ticks span just that */
+			.track, .ticks {
+				position: absolute;
+				left: calc(var(--thumb) / 2);
+				right: calc(var(--thumb) / 2);
+				top: 50%;
+				transform: translateY(-50%);
+			}
+			.track {
+				height: 8px;
+				border: 1px solid var(--border);
+				border-radius: 4px;
+				background-color: var(--option-bg);
+				transition: background-color var(--color-transition), border var(--color-transition);
+
+				/* the stretch between the thumbs */
+				&::after {
+					content: '';
+					position: absolute;
+					top: -1px;
+					bottom: -1px;
+					left: calc(100% * var(--low) / var(--steps));
+					right: calc(100% * (1 - var(--high) / var(--steps)));
+					border-radius: inherit;
+					background-color: var(--option-selected-bg);
+					transition: background-color var(--color-transition);
+				}
+			}
+			.ticks span {
+				position: absolute;
+				top: 50%;
+				left: calc(100% * var(--i) / var(--steps));
+				width: 4px;
+				height: 4px;
+				margin: -2px 0 0 -2px;
+				border-radius: 50%;
+				background-color: var(--border);
+			}
+
+			input[type="range"] {
+				appearance: none;
+				position: absolute;
+				inset: 0;
+				width: 100%;
+				height: 100%;
+				margin: 0;
+				background: transparent;
+				pointer-events: none; /* only the thumbs, below, take the pointer, so the two inputs can overlap */
+
+				&::-webkit-slider-runnable-track {
+					height: 100%;
+					background: transparent;
+				}
+				&::-moz-range-track {
+					background: transparent;
+				}
+				&::-webkit-slider-thumb {
+					appearance: none;
+					pointer-events: auto;
+					width: var(--thumb);
+					height: var(--thumb);
+					border: 1px solid var(--border);
+					border-radius: 50%;
+					background-color: var(--option-selected-bg);
+					cursor: pointer;
+				}
+				&::-moz-range-thumb {
+					pointer-events: auto;
+					width: var(--thumb);
+					height: var(--thumb);
+					border: 1px solid var(--border);
+					border-radius: 50%;
+					background-color: var(--option-selected-bg);
+					cursor: pointer;
+				}
+				&:focus-visible {
+					outline: none;
+				}
+				&:focus-visible::-webkit-slider-thumb {
+					outline: 2px solid var(--ink);
+					outline-offset: 2px;
+				}
+				&:focus-visible::-moz-range-thumb {
+					outline: 2px solid var(--ink);
+					outline-offset: 2px;
+				}
+			}
+		}
+
+		/* the chosen ends of the range, each with its example words */
+		.readout {
+			margin-top: .75rem;
+			line-height: 1.6;
+
+			p {
+				display: flex;
+				flex-wrap: wrap;
+				align-items: baseline;
+				gap: 0 .6em;
+			}
+			p[hidden] {
+				display: none;
+			}
+			.preposition {
+				color: var(--subdued-ink);
+				transition: color var(--color-transition);
+			}
+			.examples {
+				font-size: .75rem;
+				color: var(--subdued-ink);
+				transition: color var(--color-transition);
+			}
+		}
 	}
 
 	.min-max {
@@ -891,7 +1080,7 @@ definition-panel {
 		grid-template-columns:
 			min(calc(400px + (100vw - 1020px) * .5), 600px)
 			calc(min(100vw, 2000px) - min(3vw, 6rem) - min(calc(400px + (100vw - 1020px) * .5), 600px));
-		grid-template-rows: min-content auto;
+		grid-template-rows: min-content 1fr min-content;
 		column-gap: min(3vw, 6rem);
 		margin-inline: auto;
 	}
@@ -920,36 +1109,30 @@ definition-panel {
 	}
 
 
-	main{
-		grid-row: 2;
-		grid-column: 1 / span 2;
-		display: grid;
-		grid-template-columns: subgrid;
-		overflow-y: hidden;
-		overflow-x: visible;
+	/* main's own box is dissolved so the form, the results and the footer sit straight on the
+	   page grid. That is what lets the results column run the full height of the window while
+	   the footer takes a row under the word-options column alone. */
+	main {
+		display: contents;
 	}
 
-	/* the footer shares main's row and sits at its bottom edge, floating over the columns rather
-	   than taking a row of its own, so the panels can scroll fully into view beneath it */
+	/* the footer sits in its own row at the foot of the word-options column. It used to float
+	   over both columns, which let it cover the form's buttons whenever the column scrolled. */
 	footer {
-		grid-row: 2;
-		grid-column: 1 / span 2;
+		grid-row: 3;
+		grid-column: 1;
 		align-self: end;
-		z-index: 1;
 		padding-block: 1rem;
 		padding-left: var(--wide-margin);
-		pointer-events: none;
-
-		a {
-			pointer-events: auto;
-		}
 	}
 
 	form {
+		grid-row: 2;
 		grid-column: 1;
+		min-height: 0; /* a scrolling grid item must be allowed to be shorter than its content */
 		padding-left: var(--wide-margin);
 		padding-right: 5px;
-		padding-bottom: 3rem; /* room to scroll the buttons clear of the footer */
+		padding-bottom: 1.5rem;
 		height: 100%;
 		overflow-y: auto;
 		/* reserve the gutter so the layout does not shift when content starts to overflow */
@@ -960,7 +1143,10 @@ definition-panel {
 
 
 	#results {
+		/* spans the footer's row too, so the panels reach the bottom of the window */
+		grid-row: 2 / span 2;
 		grid-column: 2;
+		min-height: 0;
 		width: 100%;
 		height: 100%;
 		padding-right: var(--wide-margin);
@@ -1018,34 +1204,16 @@ definition-panel {
 		grid-column: 4;
 	}
 
-	main {
-		grid-column: 2 / span 3;
-	}
-
 	footer {
-		grid-column: 1 / span 5;
-		display: grid;
-		grid-template-columns: subgrid;
-		padding-left: 0;
-
-		inner-column {
-			grid-column: 1 / span 5;
-			display: grid;
-			grid-template-columns: subgrid;
-
-			p {
-				grid-column: 2 / span 3;
-				padding-left: var(--wide-margin);
-			}
-		}
+		grid-column: 2;
 	}
 
 	form {
-		grid-column: 1
+		grid-column: 2;
 	}
 
 	#results {
-		grid-column: 2 / span 2;
+		grid-column: 3 / span 2;
 		display: grid;
 		grid-template-columns: subgrid;
 

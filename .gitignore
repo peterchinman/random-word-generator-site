@@ -1,4 +1,8 @@
 .vscode/
 .DS_Store
-database/build/
 __pycache__/
+database/build/
+database/.venv/
+database/dictionary.db
+database/dictionary.db.tmp
+database/dictionary.db.release

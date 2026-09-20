@@ -1,0 +1,127 @@
+dictionary.db build report
+==========================
+
+extract:  /Users/peterchinman/Code/random-word-generator-site/database/build/extract.jsonl.gz
+  extractor_version: 1
+  source: kaikki.org-dictionary-English.jsonl
+  source_bytes: 3245973435
+  source_modified: 2026-09-20T15:20:16+00:00
+  extracted: 2026-09-20T16:36:07+00:00
+scores:   /Users/peterchinman/Code/random-word-generator-site/database/zipf.tsv.gz
+books:    /Users/peterchinman/Code/random-word-generator-site/database/books.tsv.gz
+database: /Users/peterchinman/Code/random-word-generator-site/database/dictionary.db (422 MB)
+timings:  pass 1 11s, pass 2 20s, index+vacuum 7s, total 38s
+
+Counts
+------
+     487,836  etymologies
+     106,225  examples kept: made-up
+     301,646  examples kept: quotation
+      93,296  examples skipped: beyond two per meaning
+       5,329  examples skipped: citation with no quoted text
+      73,234  examples skipped: elided or archaic typography
+      82,422  examples skipped: over 300 characters
+      84,720  examples skipped: quotation before 1900
+       4,700  examples skipped: quotation without a year
+     115,952  meanings: demoted
+   1,037,983  meanings: kind definition
+      37,661  meanings: kind synonym
+     172,574  meanings: kind variant
+     184,932  pronunciations
+         191  senses dropped: duplicate within word
+           3  senses dropped: leaked category name
+     316,997  synonyms skipped: beyond ten per meaning
+         346  synonyms skipped: broken link
+      31,439  synonyms skipped: headword or duplicate
+     883,995  words
+      13,168  words: flag apostrophe
+      34,501  words: flag archaic
+     216,066  words: flag capitalized
+       2,925  words: flag digits
+      47,168  words: flag hyphenated
+     188,336  words: flag multiword
+       9,987  words: flag nonascii
+     105,450  words: flag technical
+     165,892  words: pointer only
+      61,208  words: score taken from Google Books
+      36,214  words: score taken from wordfreq
+     329,402  words: scored by Google Books only
+      97,422  words: scored by wordfreq and Google Books
+      83,768  words: scored by wordfreq only
+      38,792  words: tier common
+      87,655  words: tier marginal
+     125,563  words: tier obscure
+     213,757  words: tier rare
+     115,973  words: tier scarce
+     240,112  words: tier unattested
+      62,143  words: tier uncommon
+      65,647  words: unscored, lookable in Google Books but absent
+     307,756  words: unscored, not lookable (placed by Wiktionary evidence)
+
+Words by tier and shape
+-----------------------
+  tier               all     plain  multiword   capital   pointer   archaic  technical  books p50  score p50
+  common          38,792    23,494          6    11,871     5,325       361      1,272    801,813       3.60
+  uncommon        62,143    32,130          1    24,563    10,004       993      5,052     61,881       2.40
+  scarce         115,973    58,964          1    44,360    18,732     2,789     12,916      7,009       1.44
+  rare           213,757    94,513     71,092    31,650    28,140     7,056     30,774      1,039       0.43
+  obscure        125,563   104,064          0         0    21,453     7,154     20,302        157      -0.47
+  marginal        87,655    59,191     10,138     3,918    15,928     8,191      8,981         29      -1.31
+  unattested     240,112    39,647    107,098    99,704    66,310     7,957     26,153          4      -2.29
+
+Samples (plain single lowercase words, neither flag, unless the heading says otherwise)
+-------
+  tier common (22,262 words): air, crumbs, decide, disqualify, dissect, entangled, exemplify, growth, hopping, impossibly, innocuous, optics, quorum, removing, roost, shampoo, sling, tagline, unseen, user
+  tier common, archaic (264 words): crimes, kamal, lai, maud, patel, penned, sacre, tibet, watches, webster
+  tier common, technical (951 words): applet, cranial, dopamine, existential, ins, ionize, isotopic, lidocaine, oocyte, urea
+  tier uncommon (26,667 words): adorably, bandstand, breadfruit, cladistics, cognizance, crotchet, derided, doughty, eatery, gammon, gata, headnote, ironwood, keyframe, preservationist, pupillary, sarki, unabated, unromantic, wagoner
+  tier uncommon, archaic (829 words): amira, bibliotheque, castellan, dweeb, fedayi, fop, fum, pontifex, ringling, wold
+  tier uncommon, technical (4,558 words): amiloride, mirtazapine, nanowire, polycythemia, submucosa, subscapularis, thermophilic, thrombotic, transesterification, vasoconstrictor
+  tier scarce (44,503 words): agoge, arpeggiation, bigamous, chillness, collabo, disjoined, englobe, firepot, hackable, heta, hotfoot, hybridism, hymnist, nanosilica, polychronic, rasm, reconduct, softgel, timesaving, tomblike
+  tier scarce, archaic (2,230 words): ardian, coya, croche, goldspink, hillo, jessamy, kinbote, motty, soothly, vacance
+  tier scarce, technical (12,050 words): anagen, antisymmetrical, apicoplast, elastodynamics, lopinavir, reboxetine, rubor, spellout, urethrovesical, valganciclovir
+  tier rare (68,591 words): biopolishing, cabinmate, capotasto, dogbreath, ecclesiologically, happenstantial, hillscape, humanimal, lobeless, microemulsified, microscrew, mosslike, natureculture, palatially, polymorphousness, sessionable, stadimeter, substantialization, zimelidine, zucchetta
+  tier rare, archaic (4,607 words): anderun, brassage, dracunculosis, extramission, grzywna, leechdom, premonish, quiritary, subrationalized, uggle
+  tier rare, technical (21,089 words): anchimeric, aphasiologist, ecolinguistics, equiareal, flexid, hamamelid, immunomicroscopy, muristerone, pithiatism, psychogenetics
+  tier obscure (76,512 words): bodaciousness, circumequatorial, godawfully, golemic, helianthin, histotope, jangseung, kintsukuroi, motshelo, pondhorn, prorecognition, pseudocelebrity, retinocerebral, schedulize, subuniversal, unipeg, unpunishability, vannerman, wordship, zivania
+  tier obscure, archaic (7,134 words): dictatorian, enrank, equidistantial, hedgebreaker, menostasis, pensative, raghouse, revokement, thridding, tympanize
+  tier obscure, technical (20,280 words): acastid, bregmacerotid, cerebrovisceral, immunoprotect, lignel, monospermy, panaxytriol, postsphenoid, proostracum, transketolation
+  tier marginal (44,619 words): blancmangey, blogcentric, gonadotropinic, handkerchiefless, intradermolingual, introsuscept, invertend, jokelessness, microfilterfuge, pedalferic, pinnatisectly, pitchpenny, pussyass, resonication, shitbiscuit, speakworthy, spiritfulness, subterposition, tutelaric, unthirsting
+  tier marginal, archaic (6,266 words): angariation, antholeucin, branular, complimentative, entheal, furniment, impierceable, infrabestial, islandry, ornify
+  tier marginal, technical (8,149 words): autocarpy, coremorphosis, echitin, floatstick, gesneriaceous, macrergate, posteroflexus, pronilfactor, subtegula, viroimmunological
+  tier unattested (25,772 words): apelloid, autochemotaxis, brachauchenine, cefclidine, downstroy, extramazal, geneagenetic, hemochromocytometer, hierophobic, hypomannosylation, nontrigonometrical, ololygmancy, pillsnail, revengelessness, serocatalytic, sulkpot, thrombosuppression, thunderdunk, unbeholdenness, unpremonished
+  tier unattested, archaic (1,721 words): affygraphy, albuminone, inexhaustedly, largifical, nonlister, ormizet, serplath, sonizance, trijugous, unbequested
+  tier unattested, technical (11,681 words): aminylene, bulachite, gyrocentroid, ketobenzothiazole, kratochvilite, kudriavite, necroptosome, octahydroxyanthraquinone, springcreekite, terbequinil
+  flag capitalized (216,066 words): CRPF, Calum, Fordson, New Cordell, North Jutland, Ponomarenko, Shirazi, Tayabas, Werrett, Woodnutt
+  flag multiword (188,336 words): Cape plane, Florida honeymoon, Humboldt's flying squirrel, Moreton Pinkney, at any cost, comb someone's hair the wrong way, fog out, large it, sprinkler head, square footage
+  flag hyphenated (47,168 words): air-to-surface missile, condylo-, gender-flipped, hard-water, lizard-hipped, match-up, non-resistance, pad-mounted, post-WIMP, sun-up
+  flag apostrophe (13,168 words): 'cello, Devil's Staircase, Fathers' Day, I'm scared, Saint Anthony's cross, St. Lubbock's Day, Tate's Cairn, legend in one's own lunchtime, split one's sides, turnin'
+  flag digits (2,925 words): 14, 1488er, 2 Sam., 3G, 47, 501c3, District 1, H-2A, SO15, vitamin B6
+  flag nonascii (9,987 words): Bistrița River, Fréchet, Le Kremlin-Bicêtre, Maqên, Svetvinčenat, Tremembé, gynæcocratic, pharmacopœic, 🄬, 🍇ist
+  pointer only (165,892 words): XBox, YAGNI, arterialise, balass, fox hunt, heart-whole, leucemia, monkey jar, pitch-farthing, uncertitude
+
+Canaries
+--------
+  ok    cat                  expected tier=['common']                               got tier=common pointer_only=0 archaic=0 technical=0
+  ok    lanyard              expected tier=['scarce', 'uncommon']                   got tier=uncommon pointer_only=0 archaic=0 technical=0
+  ok    trundle              expected tier=['scarce', 'uncommon']                   got tier=uncommon pointer_only=0 archaic=0 technical=0
+  ok    heedless             expected tier=['scarce', 'uncommon']                   got tier=uncommon pointer_only=0 archaic=0 technical=0
+  ok    frazzle              expected tier=['uncommon']                             got tier=uncommon pointer_only=0 archaic=0 technical=0
+  ok    yardarm              expected tier=['scarce']                               got tier=scarce pointer_only=0 archaic=0 technical=0
+  ok    sedulous             expected tier=['scarce']                               got tier=scarce pointer_only=0 archaic=0 technical=0
+  ok    steamily             expected tier=['rare']                                 got tier=rare pointer_only=0 archaic=0 technical=0
+  ok    overglow             expected tier=['obscure']                              got tier=obscure pointer_only=0 archaic=0 technical=0
+  ok    quadragenarian       expected tier=['obscure']                              got tier=obscure pointer_only=0 archaic=0 technical=0
+  ok    ornerily             expected tier=['marginal']                             got tier=marginal pointer_only=0 archaic=0 technical=0
+  ok    hummably             expected tier=['marginal']                             got tier=marginal pointer_only=0 archaic=0 technical=0
+  ok    crinklepants         expected tier=['marginal']                             got tier=marginal pointer_only=0 archaic=0 technical=0
+  ok    zoophytolith         expected tier=['unattested']                           got tier=unattested pointer_only=0 archaic=0 technical=0
+  ok    phosphomannoprotein  expected tier=['unattested'], technical=1              got tier=unattested pointer_only=0 archaic=0 technical=1
+  ok    dingthrift           expected archaic=1                                     got tier=marginal pointer_only=0 archaic=1 technical=0
+  ok    shark                expected archaic=0, technical=0                        got tier=common pointer_only=0 archaic=0 technical=0
+  ok    colour               expected pointer_only=1                                got tier=common pointer_only=1 archaic=0 technical=0
+  ok    judgement            expected pointer_only=1                                got tier=common pointer_only=1 archaic=0 technical=0
+  ok    theatre              expected pointer_only=0                                got tier=common pointer_only=0 archaic=0 technical=0
+  ok    social secretary     expected multiword=1                                   got tier=unattested pointer_only=0 archaic=0 technical=0
+  ok    French               expected capitalized=1                                 got tier=common pointer_only=0 archaic=0 technical=0
+  ok    trocarised           expected absent                                        got absent

@@ -59,6 +59,30 @@
 					<label>adj<input type="checkbox" name="parts-of-speech" value="adjective"></label>
 					<label>adv<input type="checkbox" name="parts-of-speech" value="adverb"></label>
 				</fieldset>
+				<fieldset class="range" id="rareness">
+					<legend>Rareness</legend>
+					<!-- Two range inputs on one track make the two thumbs; javascript.js keeps the filled
+					     stretch of track, the tick marks and the readout in step with them. -->
+					<div class="slider">
+						<div class="track"></div>
+						<input type="range" name="tier-a" min="0" max="6" value="0" aria-label="Rareness, first handle">
+						<input type="range" name="tier-b" min="0" max="6" value="3" aria-label="Rareness, second handle">
+					</div>
+					<div class="readout">
+						<p class="from"><span class="preposition">from</span> <span class="tier-name"></span> <span class="examples"></span></p>
+						<p class="to"><span class="preposition">to</span> <span class="tier-name"></span> <span class="examples"></span></p>
+					</div>
+					<!-- The tiers from least to most rare: API code, name shown on the site, three example words -->
+					<datalist id="tiers">
+						<option value="common" label="everyday" data-examples="lake, crane, peppermint"></option>
+						<option value="uncommon" label="familiar" data-examples="rancid, valise, surfeit"></option>
+						<option value="scarce" label="unusual" data-examples="balalaika, buckram, fogbound"></option>
+						<option value="rare" label="rare" data-examples="ceilingward, foxskin, stonecraft"></option>
+						<option value="obscure" label="obscure" data-examples="trumpetry, heliophobe, lampadomancy"></option>
+						<option value="marginal" label="fringe" data-examples="moanless, clamjamfrey, shriekery"></option>
+						<option value="unattested" label="dubious" data-examples="orckind, noctivagator, claymorphism"></option>
+					</datalist>
+				</fieldset>
 				<fieldset class="min-max">
 					<legend>Word Length</legend>
 					<div class="number-input">
@@ -92,6 +116,23 @@
 						</button>
 					</div>
 				</fieldset>
+				<!-- Options stays collapsed until opened; data-examples is shown in a bubble when a pill is hovered or focused -->
+				<details id="options">
+					<summary>
+						Options
+						<svg class="option-arrow-svg" width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+							<path d="M1.5 1.21094L7.5 4.99993L1.5 8.78892" stroke="black" stroke-width="2" stroke-linecap="round"/>
+						</svg>
+					</summary>
+					<fieldset class="options columns-2">
+						<label data-examples="ice cream, black hole, red tape">multi-word<input type="checkbox" name="include" value="multiword"></label>
+						<label data-examples="made-up, two-bit, tuk-tuk">hyphenated<input type="checkbox" name="include" value="hyphenated" checked></label>
+						<label data-examples="o'clock, ma'am, y'all">apostrophe<input type="checkbox" name="include" value="apostrophe" checked></label>
+						<label data-examples="Orkney, Bugatti, Kafkaesque">capitalized<input type="checkbox" name="include" value="capitalized"></label>
+						<label data-examples="puissant, glaive, avaunt">archaic<input type="checkbox" name="include" value="archaic" checked></label>
+						<label data-examples="serotonin, feldspar, enthalpy">technical<input type="checkbox" name="include" value="technical" checked></label>
+					</fieldset>
+				</details>
 			</details>
 			<fieldset class="buttons">
 				<button type="submit" id="generate">Generate</button>
