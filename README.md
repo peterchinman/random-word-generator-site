@@ -4,7 +4,7 @@ Source for [randomwordgenerator.info](https://randomwordgenerator.info): a stati
 
 ## Layout
 
-- `public/` is the web root. `index.html` is the whole front end; `api/get_words.php` is the only server-side code. Its docblock lists the query parameters (number of words, parts of speech, word length, commonness tier, and whether to include multi-word, hyphenated, apostrophe, accented and capitalised words, pure spelling variants, archaic words and technical terms).
+- `public/` is the web root. `index.html` is the whole front end; `api/get_words.php` is the only server-side code; `assets/fonts/` holds the self-hosted Roboto Mono and its license. Its docblock lists the query parameters (number of words, parts of speech, word length, commonness tier, and whether to include multi-word, hyphenated, apostrophe, accented and capitalised words, pure spelling variants, archaic words and technical terms).
 - `database/dictionary.db` is the SQLite dictionary the API reads. It is a build artifact published as a GitHub release asset, and the deploy fetches the release named in `database/RELEASE`. `database/schema.sql` describes its tables.
 - `database/` also holds the build stages (`extract.py`, `score.py`, `books.py`, `build.py`), `check_examples.py`, their committed scoring outputs `zipf.tsv.gz` and `books.tsv.gz`, and `build-report.txt`.
 

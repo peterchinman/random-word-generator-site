@@ -26,9 +26,9 @@
 		})();
 	</script>
 
-	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100..700&display=swap" rel="stylesheet">
+	<!-- The font is served from assets/fonts (declared in style.css), not from Google, so the page
+	     needs no other origin. Preloading it starts the download alongside the stylesheets. -->
+	<link rel="preload" href="assets/fonts/roboto-mono-v31-latin.woff2" as="font" type="font/woff2" crossorigin>
 
 	<!-- ?v=dev is replaced with the commit hash at deploy time so caches pick up new files -->
 	<link href="assets/css/reset.css?v=dev" rel="stylesheet">
