@@ -6,6 +6,9 @@ Source for [randomwordgenerator.info](https://randomwordgenerator.info): a stati
 
 - `public/` is the web root. `index.html` is the whole front end; `api/get_words.php` is the only server-side code.
 - `database/dictionary.db` is the SQLite dictionary the API reads. It sits outside the web root so it can't be downloaded.
+- The API picks random words from a precomputed `word_pick` table (one row per single word, with its length and a part-of-speech bitmask). Whenever the `word` or `meaning` tables change, rebuild it with:
+
+      sqlite3 database/dictionary.db < database/build_pick_table.sql
 
 ## Running locally
 

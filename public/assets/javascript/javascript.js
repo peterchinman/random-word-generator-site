@@ -157,9 +157,13 @@ window.addEventListener('resize', openFilters);
 // COLOR THEMES
 // Two switches: palette (pinkish or bluish) and mode (light or dark). Each combination
 // is a pair of body classes, e.g. "pink dark", that style.css defines a theme for.
+// The palette choice is remembered in localStorage; light or dark follows the system
+// setting unless the visitor flips the mode switch during this visit.
+// (A small inline script in index.html applies the same rules before first paint.)
 
 const $pinkBlue = document.querySelector('#pink-blue');
 const $lightDark = document.querySelector('#light-dark');
+const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
 
 function applyTheme() {
    document.body.classList.toggle('blue', $pinkBlue.checked);
@@ -168,13 +172,25 @@ function applyTheme() {
    document.body.classList.toggle('light', !$lightDark.checked);
 }
 
-// If the visitor's system prefers dark mode, start in dark
-if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-   $lightDark.checked = true;
-}
+$pinkBlue.checked = localStorage.getItem('palette') === 'blue';
+$lightDark.checked = prefersDark.matches;
 applyTheme();
-$pinkBlue.addEventListener('change', applyTheme);
-$lightDark.addEventListener('change', applyTheme);
+
+$pinkBlue.addEventListener('change', () => {
+   localStorage.setItem('palette', $pinkBlue.checked ? 'blue' : 'pink');
+   applyTheme();
+});
+
+let modeChosenByHand = false;
+$lightDark.addEventListener('change', () => {
+   modeChosenByHand = true;
+   applyTheme();
+});
+prefersDark.addEventListener('change', () => {
+   if (modeChosenByHand) return;
+   $lightDark.checked = prefersDark.matches;
+   applyTheme();
+});
 
 
 
@@ -185,13 +201,14 @@ document.addEventListener('click', (event) => {
 
    // Clicking anywhere outside an open definition panel closes it
    const $activePanel = document.querySelector('definition-panel.active');
+   const $openTile = $activePanel?.closest('word-tile');
    if ($activePanel && !$target.matches('definition-panel, definition-panel *')) {
       updateCurrentlySelectedWord($activePanel);
       panelCloseOut($activePanel);
    }
 
-   // Clicking a word tile opens its definition panel
-   if ($target.tagName === 'WORD-TILE') {
+   // Clicking a word tile opens its definition panel; clicking the open one again just closes it
+   if ($target.tagName === 'WORD-TILE' && $target !== $openTile) {
       updateCurrentlySelectedWord($target);
       $target.querySelector('definition-panel').classList.add('active');
       setPanelOffsets($target);
@@ -391,14 +408,47 @@ function createDefinitionPanel(word) {
    `;
 }
 
-// Positions a tile's definition panel just below the tile, shifted left if it would overflow the list
+// The nearest ancestor that scrolls (the results column on wide screens), or null when the window does
+function scrollParent($element) {
+   for (let $node = $element.parentElement; $node; $node = $node.parentElement) {
+      const overflowY = getComputedStyle($node).overflowY;
+      if (overflowY === 'auto' || overflowY === 'scroll') return $node;
+   }
+   return null;
+}
+
+// Positions a tile's definition panel: below the tile by default, above it when there isn't room
+// below in the visible area, and shifted left if it would overflow the list
 function setPanelOffsets($wordTile) {
    const $panel = $wordTile.querySelector('definition-panel');
    const wordTileRect = $wordTile.getBoundingClientRect();
    const wordListRect = $wordTile.parentElement.getBoundingClientRect();
-
+   const panelRect = $panel.getBoundingClientRect();
    const yGap = 12;
-   $panel.style.top = (wordTileRect.bottom - wordListRect.top + yGap) + "px";
+   // when the panel sits above the tile it gets a little extra clearance
+   const aboveExtraGap = 0.5 * parseFloat(getComputedStyle(document.documentElement).fontSize);
+
+   // the part of the scrolling area that is currently on screen
+   const $scroller = scrollParent($wordTile);
+   const scrollerRect = $scroller ? $scroller.getBoundingClientRect() : { top: 0, bottom: window.innerHeight };
+   const visibleTop = Math.max(scrollerRect.top, 0);
+   const visibleBottom = Math.min(scrollerRect.bottom, window.innerHeight);
+
+   const spaceBelow = visibleBottom - wordTileRect.bottom - yGap;
+   const spaceAbove = wordTileRect.top - visibleTop - yGap - aboveExtraGap;
+   const fitsBelow = panelRect.height <= spaceBelow;
+   const fitsAbove = panelRect.height <= spaceAbove;
+   // below unless it doesn't fit and above does; if neither fits, take the roomier side
+   const above = !fitsBelow && (fitsAbove || spaceAbove > spaceBelow);
+
+   if (above) {
+      $panel.style.top = 'auto';
+      $panel.style.bottom = (wordListRect.bottom - wordTileRect.top + yGap + aboveExtraGap) + "px";
+   } else {
+      $panel.style.bottom = 'auto';
+      $panel.style.top = (wordTileRect.bottom - wordListRect.top + yGap) + "px";
+   }
+   $panel.classList.toggle('above', above);
 
    const panelWidth = parseInt(window.getComputedStyle($panel).getPropertyValue('width'), 10);
    let xOffset;

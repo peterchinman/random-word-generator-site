@@ -12,6 +12,11 @@
  * Every value is bound as a prepared-statement parameter; nothing from the
  * request is ever pasted into the SQL text.
  *
+ * The random pick reads word_pick, a small precomputed table with one row per
+ * single word (its id, length and a bitmask of its parts of speech), rather than
+ * the full word and meaning tables. Rebuild it with database/build_pick_table.sql
+ * whenever the dictionary changes.
+ *
  * The response carries a Server-Timing header with how long PHP spent opening
  * the database, running the query and encoding the JSON, so the browser's
  * network panel can show server time separately from network time.
@@ -48,26 +53,33 @@ if (is_string($rawPartsOfSpeech)) {
    $partsOfSpeech = array_slice($partsOfSpeech, 0, MAX_PARTS_OF_SPEECH);
 }
 
-// Build the WHERE clause from whichever filters were supplied.
+// Build the filter on word_pick from whichever options were supplied.
 // Each "?" placeholder is filled from $parameters, in order.
-$conditions = ["word.word NOT LIKE '% %'"]; // single words only, no phrases
+$conditions = [];
 $parameters = [];
 
 if ($partsOfSpeech) {
+   // speech_part_bit maps each part of speech to one bit of word_pick.pos_mask, so the
+   // requested names are turned into a mask inside the query and stay bound as strings.
    $placeholders = implode(', ', array_fill(0, count($partsOfSpeech), '?'));
-   $conditions[] = "meaning.speech_part IN ($placeholders)";
+   $conditions[] = "(word_pick.pos_mask & (SELECT SUM(DISTINCT bit) FROM speech_part_bit WHERE speech_part IN ($placeholders))) != 0";
    array_push($parameters, ...$partsOfSpeech);
 }
 if ($minWordLength > 0) {
-   $conditions[] = 'length(word.word) >= ?';
+   $conditions[] = 'word_pick.length >= ?';
    $parameters[] = $minWordLength;
 }
 if ($maxWordLength > 0) {
-   $conditions[] = 'length(word.word) <= ?';
+   $conditions[] = 'word_pick.length <= ?';
    $parameters[] = $maxWordLength;
 }
 $parameters[] = $numberOfWords;
 
+$where = $conditions ? 'WHERE ' . implode("\n        AND ", $conditions) : '';
+
+// Two steps in one statement: the inner query picks the ids by sorting the small word_pick
+// rows at random, and the outer query builds the JSON for just those words. The outer
+// ORDER BY keeps the batch itself in random order.
 $sql = "
    SELECT json_object(
       'word', word.word,
@@ -89,11 +101,14 @@ $sql = "
       )
    ) AS word_json
    FROM word
-   JOIN meaning ON meaning.word_id = word.id
-   WHERE " . implode("\n     AND ", $conditions) . "
-   GROUP BY word.id
+   WHERE word.id IN (
+      SELECT word_id
+      FROM word_pick
+      $where
+      ORDER BY random()
+      LIMIT ?
+   )
    ORDER BY random()
-   LIMIT ?
 ";
 
 try {

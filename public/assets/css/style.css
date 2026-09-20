@@ -36,7 +36,7 @@
 	--slider-width: 1.5rem;
 
 
-	--word-list-gap: 12px;
+	--word-list-gap: 10px; /* 12px on wide screens */
 	--border-radius-small: 5px;
 	--box-shadow-small: 5px 5px var(--drop-shadow);
 	--box-shadow-big: 10px 10px var(--drop-shadow);
@@ -225,6 +225,10 @@ body.pink.dark{
 	--box-shadow-big: 10px 10px var(--drop-shadow);
 }
 
+html {
+	font-size: 93.75%; /* 15px at the browser default; back to 100% on wide screens */
+}
+
 body {
 	background-color: var(--bg-2);
 	font-family: "Roboto Mono", monospace;
@@ -265,19 +269,12 @@ definition-panel {
 inner-column {
 	max-width: 100%;
 	margin-inline: auto;
-	padding-inline: 10px;
+	padding-inline: 1rem;
 }
 
 header {
-	inner-column {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 1rem;
-	}
-
 	.title {
-		padding-block: 3rem;
+		padding-block: 1.25rem 2.5rem;
 
 		.title-word-cursor-container {
 			position: relative;
@@ -295,83 +292,85 @@ header {
 			}
 		}
 	}
+}
 
-	/* holds the palette switch and the mode switch */
-	.theme-toggles {
-		display: flex;
-		align-items: center;
-		justify-content: flex-end;
-		flex-wrap: wrap; /* on narrow screens the second switch drops under the first */
-		gap: .75rem 1.5rem;
+/* THEME SWITCHES
+   A direct child of body: after the content on narrow screens, and placed onto the title row
+   of the page grid on wide screens (see the media queries). */
+.theme-toggles {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap; /* on narrow screens the second switch drops under the first */
+	gap: .75rem 1.5rem;
+	padding-inline: 1rem;
+}
+
+.theme-toggle {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	color: var(--subdued-ink);
+	transition: color var(--color-transition);
+
+	/* switch labels, drawn in the label colour: a rising stroke and a wave for the warm and
+	   cool palettes, sol and luna for light and dark */
+	svg {
+		width: 1rem;
+		height: 1rem;
+		flex-shrink: 0;
 	}
 
-	.theme-toggle {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		color: var(--subdued-ink);
-		transition: color var(--color-transition);
+	.switch-container {
+		display: inline-block;
+		height: calc(var(--slider-width) + 8px);
+		width: calc(var(--slider-width) * 2 + 8px);
+		position: relative;
+	}
 
-		/* switch labels, drawn in the label colour: a rising stroke and a wave for the warm and
-		   cool palettes, sol and luna for light and dark */
-		svg {
-			width: 1rem;
-			height: 1rem;
-			flex-shrink: 0;
-		}
+	.switch-container input {
+		/* visually hidden, but still focusable so the toggle works from the keyboard */
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		margin: -1px;
+		padding: 0;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+		border: 0;
+	}
 
-		.switch-container {
-			display: inline-block;
-			height: calc(var(--slider-width) + 8px);
-			width: calc(var(--slider-width) * 2 + 8px);
-			position: relative;
-		}
+	/* the track: an outlined pill, like the option buttons */
+	.slider {
+		position: absolute;
+		inset: 0;
+		cursor: pointer;
+		border-radius: 34px;
+		background-color: var(--option-bg);
+		border: 1px solid var(--border);
+		transition: background-color var(--color-transition), border-color var(--color-transition);
+	}
 
-		.switch-container input {
-			/* visually hidden, but still focusable so the toggle works from the keyboard */
-			position: absolute;
-			width: 1px;
-			height: 1px;
-			margin: -1px;
-			padding: 0;
-			overflow: hidden;
-			clip-path: inset(50%);
-			white-space: nowrap;
-			border: 0;
-		}
+	/* the knob */
+	.slider::before {
+		content: "";
+		position: absolute;
+		top: 3px;
+		left: 3px;
+		height: var(--slider-width);
+		aspect-ratio: 1 / 1;
+		border-radius: 50%;
+		background-color: var(--option-text); /* the knob sits on an --option-bg track */
+		transition: transform .4s, background-color var(--color-transition);
+	}
 
-		/* the track: an outlined pill, like the option buttons */
-		.slider {
-			position: absolute;
-			inset: 0;
-			cursor: pointer;
-			border-radius: 34px;
-			background-color: var(--option-bg);
-			border: 1px solid var(--border);
-			transition: background-color var(--color-transition), border-color var(--color-transition);
-		}
+	input:checked + .slider::before {
+		transform: translateX(100%);
+	}
 
-		/* the knob */
-		.slider::before {
-			content: "";
-			position: absolute;
-			top: 3px;
-			left: 3px;
-			height: var(--slider-width);
-			aspect-ratio: 1 / 1;
-			border-radius: 50%;
-			background-color: var(--option-text); /* the knob sits on an --option-bg track */
-			transition: transform .4s, background-color var(--color-transition);
-		}
-
-		input:checked + .slider::before {
-			transform: translateX(100%);
-		}
-
-		input:focus-visible + .slider {
-			outline: 2px solid var(--ink);
-			outline-offset: 2px;
-		}
+	input:focus-visible + .slider {
+		outline: 2px solid var(--ink);
+		outline-offset: 2px;
 	}
 }
 
@@ -383,6 +382,20 @@ header {
 
 main {
 	flex-grow: 2;
+}
+
+footer {
+	padding-block: 1.5rem 2rem;
+	font-size: .8rem;
+	color: var(--subdued-ink);
+	transition: color var(--color-transition);
+
+	a {
+		display: inline;
+		color: inherit;
+		text-decoration: underline;
+		text-underline-offset: 2px;
+	}
 }
 
 form {
@@ -422,8 +435,10 @@ form {
 				transition: background-color var(--color-transition), color var(--color-transition);
 			}
 
-			&:has(input:focus){
-				border: 1px solid blue;
+			/* keyboard focus ring, in the theme's ink like the switches; mouse clicks show nothing */
+			&:has(input:focus-visible) {
+				outline: 2px solid var(--ink);
+				outline-offset: 2px;
 			}
 
 			&:has(input[type="checkbox"]:checked) {
@@ -635,16 +650,21 @@ button {
 }
 
 #results{
-	padding-bottom: 8rem;
+	padding-bottom: 2rem;
 }
 
 .word-sections {
 	color: var(--word-sections-text);
+	margin-inline: .7rem; /* inset from the screen edge on narrow screens */
 	z-index: 2;
 	border-radius: 20px;
 	padding-block: 3rem;
 	background-color: var(--bg-1);
 	transition: background-color var(--color-transition), color var(--color-transition);
+
+	inner-column {
+		padding-inline: .7rem;
+	}
 }
 .word-sections + .word-sections {
 	margin-top: 3rem;
@@ -800,11 +820,13 @@ definition-panel {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-
+		flex-wrap: wrap; /* the buttons drop under the heading when there is no room beside it */
+		gap: .75rem 1rem;
 
 		.tools {
 			font-size: 1rem;
 			display: flex;
+			margin-left: auto;
 			gap: 1.5rem;
 			justify-content: flex-end;
 			padding-right: 5px;
@@ -848,8 +870,13 @@ definition-panel {
 /* if you change this min-width, also change wideBreakPoint in the <details> <script> */
 @media (min-width: 1020px) {
 
+	html {
+		font-size: 100%;
+	}
+
 	:root {
 		--wide-margin: 1rem;
+		--word-list-gap: 12px;
 	}
 
 	body {
@@ -873,15 +900,23 @@ definition-panel {
 		padding-inline: 0;
 	}
 	header {
+		grid-row: 1; /* explicit, so the switches sharing this row cannot push it down */
 		grid-column: 1 / span 2;
 		height: min-content;
 
 		.title {
+			padding-block: 3rem;
 			padding-left: var(--wide-margin);
 		}
-		.theme-toggles {
-			padding-right: var(--wide-margin);
-		}
+	}
+
+	/* the switches move up onto the title row, at its right edge */
+	.theme-toggles {
+		grid-row: 1;
+		grid-column: 1 / span 2;
+		justify-self: end;
+		align-self: center;
+		padding-inline: 0 var(--wide-margin);
 	}
 
 
@@ -894,10 +929,27 @@ definition-panel {
 		overflow-x: visible;
 	}
 
+	/* the footer shares main's row and sits at its bottom edge, floating over the columns rather
+	   than taking a row of its own, so the panels can scroll fully into view beneath it */
+	footer {
+		grid-row: 2;
+		grid-column: 1 / span 2;
+		align-self: end;
+		z-index: 1;
+		padding-block: 1rem;
+		padding-left: var(--wide-margin);
+		pointer-events: none;
+
+		a {
+			pointer-events: auto;
+		}
+	}
+
 	form {
 		grid-column: 1;
 		padding-left: var(--wide-margin);
 		padding-right: 5px;
+		padding-bottom: 3rem; /* room to scroll the buttons clear of the footer */
 		height: 100%;
 		overflow-y: auto;
 		/* reserve the gutter so the layout does not shift when content starts to overflow */
@@ -919,6 +971,10 @@ definition-panel {
 
 		inner-column{
 			padding-inline: 2rem;
+		}
+
+		.word-sections {
+			margin-inline: 0;
 		}
 
 	}
@@ -955,15 +1011,33 @@ definition-panel {
 			.title {
 				grid-column: 2;
 			}
-			.theme-toggles {
-				grid-column: 4;
-				justify-self: end;
-			}
 		}
+	}
+
+	.theme-toggles {
+		grid-column: 4;
 	}
 
 	main {
 		grid-column: 2 / span 3;
+	}
+
+	footer {
+		grid-column: 1 / span 5;
+		display: grid;
+		grid-template-columns: subgrid;
+		padding-left: 0;
+
+		inner-column {
+			grid-column: 1 / span 5;
+			display: grid;
+			grid-template-columns: subgrid;
+
+			p {
+				grid-column: 2 / span 3;
+				padding-left: var(--wide-margin);
+			}
+		}
 	}
 
 	form {
@@ -986,7 +1060,6 @@ definition-panel {
 
 		.word-sections {
 			max-width: 30vw;
-			height: 75%;
 		}
 
 		.word-sections + .word-sections {
