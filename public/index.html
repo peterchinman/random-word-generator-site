@@ -38,102 +38,105 @@
 <main>
 	<form id="word-options">
 		<inner-column>
-			<fieldset class="options">
-				<legend>Number of words to generate</legend>
-				<label>10<input type="radio" name="number-words" value="10"></label>
-				<label>15<input type="radio" name="number-words" value="15"></label>
-				<label>25<input type="radio" name="number-words" value="25" checked></label>
-				<label>40<input type="radio" name="number-words" value="40"></label>
-			</fieldset>
-			<details id="filters">
-				<summary>
-					Filters
-					<svg class="option-arrow-svg" width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-						<path d="M1.5 1.21094L7.5 4.99993L1.5 8.78892" stroke="black" stroke-width="2" stroke-linecap="round"/>
-					</svg>
-				</summary>
+			<!-- on wide screens this scrolls on its own, so the buttons below never leave the view -->
+			<div class="scroll-area">
 				<fieldset class="options">
-					<legend>Parts of Speech</legend>
-					<label>noun<input type="checkbox" name="parts-of-speech" value="noun"></label>
-					<label>verb<input type="checkbox" name="parts-of-speech" value="verb"></label>
-					<label>adj<input type="checkbox" name="parts-of-speech" value="adjective"></label>
-					<label>adv<input type="checkbox" name="parts-of-speech" value="adverb"></label>
+					<legend>Number of words to generate</legend>
+					<label>10<input type="radio" name="number-words" value="10"></label>
+					<label>15<input type="radio" name="number-words" value="15"></label>
+					<label>25<input type="radio" name="number-words" value="25" checked></label>
+					<label>40<input type="radio" name="number-words" value="40"></label>
 				</fieldset>
-				<fieldset class="range" id="rareness">
-					<legend>Rareness</legend>
-					<!-- Two range inputs on one track make the two thumbs; javascript.js keeps the filled
-					     stretch of track, the tick marks and the readout in step with them. -->
-					<div class="slider">
-						<div class="track"></div>
-						<input type="range" name="tier-a" min="0" max="6" value="0" aria-label="Rareness, first handle">
-						<input type="range" name="tier-b" min="0" max="6" value="3" aria-label="Rareness, second handle">
-					</div>
-					<div class="readout">
-						<p class="from"><span class="preposition">from</span> <span class="tier-name"></span> <span class="examples"></span></p>
-						<p class="to"><span class="preposition">to</span> <span class="tier-name"></span> <span class="examples"></span></p>
-					</div>
-					<!-- The tiers from least to most rare: API code, name shown on the site, three example words -->
-					<datalist id="tiers">
-						<option value="common" label="everyday" data-examples="lake, crane, peppermint"></option>
-						<option value="uncommon" label="familiar" data-examples="rancid, valise, surfeit"></option>
-						<option value="scarce" label="unusual" data-examples="balalaika, buckram, fogbound"></option>
-						<option value="rare" label="rare" data-examples="ceilingward, foxskin, stonecraft"></option>
-						<option value="obscure" label="obscure" data-examples="trumpetry, heliophobe, lampadomancy"></option>
-						<option value="marginal" label="fringe" data-examples="moanless, clamjamfrey, shriekery"></option>
-						<option value="unattested" label="dubious" data-examples="orckind, noctivagator, claymorphism"></option>
-					</datalist>
-				</fieldset>
-				<fieldset class="min-max">
-					<legend>Word Length</legend>
-					<div class="number-input">
-						<button type="button" class="decrement crement" aria-label="Decrease minimum word length">
-							<svg class="decrement-svg" width="18" height="15" viewBox="0 0 18 15" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-								<path d="M17 1L9 13L1 0.999999" stroke="black" stroke-width="2" stroke-linecap="round"/>
-							</svg>
-						</button>
-						<label><span>min</span>
-							<input type="number" min="1" max="45" name="min-word-length">
-						</label>
-						<button type="button" class="increment crement" aria-label="Increase minimum word length">
-							<svg class="increment-svg" width="18" height="15" viewBox="0 0 18 15" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-								<path d="M1 14L9 2L17 14" stroke="black" stroke-width="2" stroke-linecap="round"/>
-							</svg>
-						</button>
-					</div>
-					<div class="number-input">
-						<button type="button" class="decrement crement" aria-label="Decrease maximum word length">
-							<svg class="decrement-svg" width="18" height="15" viewBox="0 0 18 15" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-								<path d="M17 1L9 13L1 0.999999" stroke="black" stroke-width="2" stroke-linecap="round"/>
-							</svg>
-						</button>
-						<label><span>max</span>
-							<input type="number" min="1" max="45" name="max-word-length">
-						</label>
-						<button type="button" class="increment crement" aria-label="Increase maximum word length">
-							<svg class="increment-svg" width="18" height="15" viewBox="0 0 18 15" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-								<path d="M1 14L9 2L17 14" stroke="black" stroke-width="2" stroke-linecap="round"/>
-							</svg>
-						</button>
-					</div>
-				</fieldset>
-				<!-- Options stays collapsed until opened; data-examples is shown in a bubble when a pill is hovered or focused -->
-				<details id="options">
+				<details id="filters">
 					<summary>
-						Options
+						Filters
 						<svg class="option-arrow-svg" width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
 							<path d="M1.5 1.21094L7.5 4.99993L1.5 8.78892" stroke="black" stroke-width="2" stroke-linecap="round"/>
 						</svg>
 					</summary>
-					<fieldset class="options columns-2">
-						<label data-examples="ice cream, black hole, red tape">multi-word<input type="checkbox" name="include" value="multiword"></label>
-						<label data-examples="made-up, two-bit, tuk-tuk">hyphenated<input type="checkbox" name="include" value="hyphenated" checked></label>
-						<label data-examples="o'clock, ma'am, y'all">apostrophe<input type="checkbox" name="include" value="apostrophe" checked></label>
-						<label data-examples="Orkney, Bugatti, Kafkaesque">capitalized<input type="checkbox" name="include" value="capitalized"></label>
-						<label data-examples="puissant, glaive, avaunt">archaic<input type="checkbox" name="include" value="archaic" checked></label>
-						<label data-examples="serotonin, feldspar, enthalpy">technical<input type="checkbox" name="include" value="technical" checked></label>
+					<fieldset class="options">
+						<legend>Parts of Speech</legend>
+						<label>noun<input type="checkbox" name="parts-of-speech" value="noun"></label>
+						<label>verb<input type="checkbox" name="parts-of-speech" value="verb"></label>
+						<label>adj<input type="checkbox" name="parts-of-speech" value="adjective"></label>
+						<label>adv<input type="checkbox" name="parts-of-speech" value="adverb"></label>
 					</fieldset>
+					<fieldset class="range" id="rareness">
+						<legend>Rareness</legend>
+						<!-- Two range inputs on one track make the two thumbs; javascript.js keeps the filled
+						     stretch of track, the tick marks and the readout in step with them. -->
+						<div class="slider">
+							<div class="track"></div>
+							<input type="range" name="tier-a" min="0" max="6" value="0" aria-label="Rareness, first handle">
+							<input type="range" name="tier-b" min="0" max="6" value="3" aria-label="Rareness, second handle">
+						</div>
+						<div class="readout">
+							<p class="from"><span class="preposition">from</span> <span class="tier-name"></span> <span class="examples"></span></p>
+							<p class="to"><span class="preposition">to</span> <span class="tier-name"></span> <span class="examples"></span></p>
+						</div>
+						<!-- The tiers from least to most rare: API code, name shown on the site, three example words -->
+						<datalist id="tiers">
+							<option value="common" label="everyday" data-examples="lake, crane, peppermint"></option>
+							<option value="uncommon" label="familiar" data-examples="rancid, valise, surfeit"></option>
+							<option value="scarce" label="unusual" data-examples="balalaika, buckram, fogbound"></option>
+							<option value="rare" label="rare" data-examples="ceilingward, foxskin, stonecraft"></option>
+							<option value="obscure" label="obscure" data-examples="trumpetry, heliophobe, lampadomancy"></option>
+							<option value="marginal" label="fringe" data-examples="moanless, clamjamfrey, shriekery"></option>
+							<option value="unattested" label="dubious" data-examples="orckind, noctivagator, claymorphism"></option>
+						</datalist>
+					</fieldset>
+					<fieldset class="min-max">
+						<legend>Word Length</legend>
+						<div class="number-input">
+							<button type="button" class="decrement crement" aria-label="Decrease minimum word length">
+								<svg class="decrement-svg" width="18" height="15" viewBox="0 0 18 15" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+									<path d="M17 1L9 13L1 0.999999" stroke="black" stroke-width="2" stroke-linecap="round"/>
+								</svg>
+							</button>
+							<label><span>min</span>
+								<input type="number" min="1" max="45" name="min-word-length">
+							</label>
+							<button type="button" class="increment crement" aria-label="Increase minimum word length">
+								<svg class="increment-svg" width="18" height="15" viewBox="0 0 18 15" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+									<path d="M1 14L9 2L17 14" stroke="black" stroke-width="2" stroke-linecap="round"/>
+								</svg>
+							</button>
+						</div>
+						<div class="number-input">
+							<button type="button" class="decrement crement" aria-label="Decrease maximum word length">
+								<svg class="decrement-svg" width="18" height="15" viewBox="0 0 18 15" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+									<path d="M17 1L9 13L1 0.999999" stroke="black" stroke-width="2" stroke-linecap="round"/>
+								</svg>
+							</button>
+							<label><span>max</span>
+								<input type="number" min="1" max="45" name="max-word-length">
+							</label>
+							<button type="button" class="increment crement" aria-label="Increase maximum word length">
+								<svg class="increment-svg" width="18" height="15" viewBox="0 0 18 15" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+									<path d="M1 14L9 2L17 14" stroke="black" stroke-width="2" stroke-linecap="round"/>
+								</svg>
+							</button>
+						</div>
+					</fieldset>
+					<!-- Options stays collapsed until opened; data-examples is shown in a bubble when a pill is hovered or focused -->
+					<details id="options">
+						<summary>
+							Options
+							<svg class="option-arrow-svg" width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+								<path d="M1.5 1.21094L7.5 4.99993L1.5 8.78892" stroke="black" stroke-width="2" stroke-linecap="round"/>
+							</svg>
+						</summary>
+						<fieldset class="options columns-2">
+							<label data-examples="ice cream, black hole, red tape">multi-word<input type="checkbox" name="include" value="multiword"></label>
+							<label data-examples="made-up, two-bit, tuk-tuk">hyphenated<input type="checkbox" name="include" value="hyphenated" checked></label>
+							<label data-examples="o'clock, ma'am, y'all">apostrophe<input type="checkbox" name="include" value="apostrophe" checked></label>
+							<label data-examples="Orkney, Bugatti, Kafkaesque">capitalized<input type="checkbox" name="include" value="capitalized"></label>
+							<label data-examples="puissant, glaive, avaunt">archaic<input type="checkbox" name="include" value="archaic" checked></label>
+							<label data-examples="serotonin, feldspar, enthalpy">technical<input type="checkbox" name="include" value="technical"></label>
+						</fieldset>
+					</details>
 				</details>
-			</details>
+			</div>
 			<fieldset class="buttons">
 				<button type="submit" id="generate">Generate</button>
 				<button type="reset" id="reset">Reset</button>

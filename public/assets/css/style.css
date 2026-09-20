@@ -403,6 +403,14 @@ form {
 
 	padding-top: 1.5rem;
 
+	/* A closed <details> still reports a couple of pixels of scrollable overflow from the
+	   content it is hiding, which is enough to put a scrollbar on .scroll-area when everything
+	   already fits. Clipping it while closed drops those pixels without changing its height.
+	   Only while closed: open, the pills' hover bubbles have to be able to overflow it. */
+	details:not([open]) {
+		overflow: clip;
+	}
+
 	.options {
 		legend {
 			margin-bottom: 1rem;
@@ -1130,15 +1138,33 @@ definition-panel {
 		grid-row: 2;
 		grid-column: 1;
 		min-height: 0; /* a scrolling grid item must be allowed to be shorter than its content */
+		height: 100%;
+		overflow: hidden; /* the scrolling happens inside .scroll-area, below */
 		padding-left: var(--wide-margin);
 		padding-right: 5px;
 		padding-bottom: 1.5rem;
-		height: 100%;
-		overflow-y: auto;
-		/* reserve the gutter so the layout does not shift when content starts to overflow */
-		scrollbar-gutter: stable;
 
+		inner-column {
+			display: flex;
+			flex-direction: column;
+			height: 100%;
+			min-height: 0;
+		}
 
+		/* The options scroll on their own, so Generate and Reset can never be scrolled out of
+		   view. No flex-grow: while the options are short this keeps its content height and the
+		   buttons sit straight under them, rather than being pushed to the foot of the column. */
+		.scroll-area {
+			min-height: 0;
+			overflow-y: auto;
+			/* reserve the gutter so the layout does not shift when content starts to overflow */
+			scrollbar-gutter: stable;
+		}
+
+		.buttons {
+			flex-shrink: 0;
+			margin-block: 1.5rem 0;
+		}
 	}
 
 
