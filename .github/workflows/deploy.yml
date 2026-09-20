@@ -28,6 +28,11 @@ jobs:
           DROPLET_IP: ${{ secrets.DROPLET_IP }}
           DEPLOY_PATH: /var/www/randomwordgenerator.info
         run: |
+          # Stamp the asset links with this commit's hash so browsers and Cloudflare
+          # fetch fresh CSS and JS after every deploy instead of serving cached copies
+          sed -i "s/?v=dev/?v=${GITHUB_SHA::8}/g" public/index.html
+          grep -c "?v=${GITHUB_SHA::8}" public/index.html
+
           # Sync the whole repository to the deploy path
           rsync -avz --delete \
             --exclude=".git" \
