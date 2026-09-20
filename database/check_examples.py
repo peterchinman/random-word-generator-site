@@ -11,9 +11,13 @@ one up in database/dictionary.db and exits non-zero if any of them no longer fit
 be run after every build.
 
 It also checks that the tier codes in the page, in the API and in the database are the same
-three lists, which is what breaks when a tier is added, removed or renamed.
+three lists, which is what breaks when a tier is added, removed or renamed, and that the
+request index.html makes from <head> before the page has loaded still asks for what the
+form's default settings ask for (if not, the early response is wasted and the first batch
+is fetched again).
 """
 
+import re
 import sqlite3
 import sys
 from html.parser import HTMLParser
@@ -34,15 +38,21 @@ PILL_COLUMNS = {
     "technical": "technical",
 }
 
+# wordQuery() in javascript.js sends the Options pills last, in this order.
+INCLUDE_FLAGS = ["multiword", "hyphenated", "apostrophe", "capitalized", "archaic", "technical"]
+
 
 class Page(HTMLParser):
-    """Pulls the tier list and the Options pills out of index.html."""
+    """Pulls the tier list, the Options pills, the form's inputs and the scripts out of index.html."""
 
     def __init__(self):
         super().__init__()
         self.tiers = []          # (tier code, name shown, [example words])
         self.pills = []          # (pill value, name shown, [example words])
+        self.inputs = []         # attributes of every <input>, in page order
+        self.script = ""         # the text of every inline <script>
         self._in_tier_list = False
+        self._in_script = False
         self._label = None       # the label being read: [examples, text so far]
 
     def handle_starttag(self, tag, attrs):
@@ -55,20 +65,60 @@ class Page(HTMLParser):
             self._label = [split(attrs["data-examples"]), ""]
         elif tag == "input" and self._label is not None and attrs.get("name") == "include":
             self.pills.append((attrs["value"], self._label[1].strip(), self._label[0]))
+        if tag == "input":
+            self.inputs.append(attrs)
+        elif tag == "script":
+            self._in_script = True
 
     def handle_endtag(self, tag):
         if tag == "datalist":
             self._in_tier_list = False
         elif tag == "label":
             self._label = None
+        elif tag == "script":
+            self._in_script = False
 
     def handle_data(self, data):
         if self._label is not None:
             self._label[1] += data
+        if self._in_script:
+            self.script += data
 
 
 def split(value):
     return [word.strip() for word in value.split(",") if word.strip()]
+
+
+def form_default_query(page):
+    """The (name, value) pairs wordQuery() in javascript.js sends for the form as the page loads it."""
+    def inputs(name):
+        return [attrs for attrs in page.inputs if attrs.get("name") == name]
+
+    def checked(name):
+        return [attrs["value"] for attrs in inputs(name) if "checked" in attrs]
+
+    def number(name):
+        return str(int(inputs(name)[0].get("value") or 0))
+
+    thumbs = sorted(int(attrs["value"]) for attrs in inputs("tier-a") + inputs("tier-b"))
+    tiers = [code for code, _, _ in page.tiers][thumbs[0]:thumbs[-1] + 1]
+    include = checked("include")
+    return [
+        ("numberOfWords", checked("number-words")[0]),
+        ("partsOfSpeech", ",".join(checked("parts-of-speech"))),
+        ("minWordLength", number("min-word-length")),
+        ("maxWordLength", number("max-word-length")),
+        ("tiers", ",".join(tiers)),
+    ] + [(flag, "1" if flag in include else "0") for flag in INCLUDE_FLAGS]
+
+
+def head_query(page):
+    """The (name, value) pairs the <head> script in index.html requests, or None if there is no such script."""
+    match = re.search(r"window\.firstWords.*?new URLSearchParams\(\{(.*?)\}\)", page.script, re.S)
+    if match is None:
+        return None
+    pairs = re.findall(r"(\w+):\s*('[^']*'|\"[^\"]*\"|\d+)", match.group(1))
+    return [(name, value.strip("'\"")) for name, value in pairs]
 
 
 def api_tiers():
@@ -96,6 +146,12 @@ def main():
         if in_page != other:
             print(f"TIERS  page has {in_page}\n       {where} has {other}")
             problems += 1
+
+    # The request made from <head> still what the form's default settings would ask for?
+    expected, actual = form_default_query(page), head_query(page)
+    if actual != expected:
+        print(f"HEAD   the first-words request in <head> is {actual}\n       the form's defaults give {expected}")
+        problems += 1
 
     # Every example word in the tier it illustrates?
     for code, name, examples in page.tiers:

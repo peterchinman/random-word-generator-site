@@ -9,6 +9,23 @@
 	<meta name="description" content="Find fate in the stochastic.">
 	<meta property="og:image" content="https://randomwordgenerator.info/assets/images/sharecard.png">
 
+	<script>
+		// Ask for the first batch of words right away, before the stylesheets below are fetched:
+		// javascript.js, at the end of the page, cannot run until they have loaded. It picks the
+		// response up from window.firstWords. The query must be what wordQuery() in javascript.js
+		// builds for the form's default settings; if it isn't, the response is simply ignored.
+		window.firstWords = (() => {
+			const query = new URLSearchParams({
+				numberOfWords: 25, partsOfSpeech: '', minWordLength: 0, maxWordLength: 0,
+				tiers: 'common,uncommon,scarce,rare',
+				multiword: 0, hyphenated: 1, apostrophe: 1, capitalized: 0, archaic: 1, technical: 0,
+			}).toString();
+			const response = fetch(`/api/get_words.php?${query}`);
+			response.catch(() => {}); // javascript.js handles a failure; this only silences the console
+			return { query, response };
+		})();
+	</script>
+
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100..700&display=swap" rel="stylesheet">
@@ -78,11 +95,11 @@
 						<datalist id="tiers">
 							<option value="common" label="everyday" data-examples="lake, crane, peppermint"></option>
 							<option value="uncommon" label="familiar" data-examples="rancid, valise, surfeit"></option>
-							<option value="scarce" label="unusual" data-examples="balalaika, buckram, fogbound"></option>
+							<option value="scarce" label="unusual" data-examples="aspherical, buckram, fogbound"></option>
 							<option value="rare" label="rare" data-examples="ceilingward, foxskin, stonecraft"></option>
-							<option value="obscure" label="obscure" data-examples="trumpetry, heliophobe, lampadomancy"></option>
-							<option value="marginal" label="fringe" data-examples="moanless, clamjamfrey, shriekery"></option>
-							<option value="unattested" label="dubious" data-examples="orckind, noctivagator, claymorphism"></option>
+							<option value="obscure" label="obscure" data-examples="crooningly, heliophobe, lampadomancy"></option>
+							<option value="marginal" label="fringe" data-examples="dilemmatically, clamjamfrey, equicide"></option>
+							<option value="unattested" label="dubious" data-examples="stultiloquently, noctivagator, claymorphism"></option>
 						</datalist>
 					</fieldset>
 					<fieldset class="min-max">

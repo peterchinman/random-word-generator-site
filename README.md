@@ -49,7 +49,7 @@ Three stages, each a script in `database/`. Their docstrings spell out the rules
 
        python3 database/check_examples.py
 
-   The site illustrates every rareness tier and every Options pill with three example words, kept in `public/index.html`. A change to the tier rules can move one of those words into another tier and leave the page quietly wrong, so run this after every build. It also checks that the tier codes in the page, in `get_words.php` and in the database are the same list, which is what breaks when a tier is added, removed or renamed. It exits non-zero if anything no longer fits.
+   The site illustrates every rareness tier and every Options pill with three example words, kept in `public/index.html`. A change to the tier rules can move one of those words into another tier and leave the page quietly wrong, so run this after every build. It also checks that the tier codes in the page, in `get_words.php` and in the database are the same list, which is what breaks when a tier is added, removed or renamed, and that the request `index.html` makes from `<head>` before the page has loaded still matches the form's default settings. It exits non-zero if anything no longer fits.
 
 ## Publishing a new dictionary
 

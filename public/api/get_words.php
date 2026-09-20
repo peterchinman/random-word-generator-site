@@ -41,12 +41,19 @@
  * Every value is bound as a prepared-statement parameter; nothing from the request is
  * ever pasted into the SQL text.
  *
- * The random pick scans the word table through its covering index (idx_word_pick),
- * so it never touches the meaning rows until the winners are known.
+ * The pick is arranged to read as little of the 400 MB database as it can, because the
+ * server has too little memory to keep the file cached. First, a few hundred word ids
+ * are drawn at random and looked up by primary key, keeping those that pass the filter;
+ * with the usual settings a quarter of all words pass, so that is nearly always enough.
+ * When it is not (a narrow filter, such as one tier and one part of speech), the words
+ * that pass are sorted at random instead. That scan stays inside idx_word_pick, which
+ * holds every column the filter can mention, so it never reads a word row. The meanings
+ * are only read for the winners.
  *
  * The response carries a Server-Timing header with how long PHP spent opening the
- * database, running the query and encoding the JSON, so the browser's network panel
- * can show server time separately from network time.
+ * database, picking the words, building their JSON and encoding it, so the browser's
+ * network panel can show server time separately from network time. The pick entry also
+ * says whether the random ids were enough or the scan was needed.
  */
 
 declare(strict_types=1);
@@ -56,6 +63,9 @@ const MAX_NUMBER_OF_WORDS = 100;
 const MAX_PARTS_OF_SPEECH = 20;
 const TIERS = ['common', 'uncommon', 'scarce', 'rare', 'obscure', 'marginal', 'unattested'];
 const DEFAULT_TIERS = ['common', 'uncommon', 'scarce', 'rare'];
+// Random ids tried per word wanted before falling back to the scan. Each costs about one
+// page read; with the usual settings a quarter pass, so 8 per word leaves a wide margin.
+const RANDOM_IDS_PER_WORD = 8;
 
 header('Content-Type: application/json');
 header('Cache-Control: no-store');
@@ -103,6 +113,22 @@ function placeholders(int $count): string
    return implode(', ', array_fill(0, $count, '?'));
 }
 
+// Runs a statement with the given positional parameters and returns its rows.
+function query(SQLite3 $db, string $sql, array $parameters): array
+{
+   $statement = $db->prepare($sql);
+   foreach ($parameters as $index => $value) {
+      // SQLite numbers its placeholders from 1.
+      $statement->bindValue($index + 1, $value, is_int($value) ? SQLITE3_INTEGER : (is_float($value) ? SQLITE3_FLOAT : SQLITE3_TEXT));
+   }
+   $results = $statement->execute();
+   $rows = [];
+   while ($row = $results->fetchArray(SQLITE3_ASSOC)) {
+      $rows[] = $row;
+   }
+   return $rows;
+}
+
 $numberOfWords = max(1, min(intParam('numberOfWords', 15), MAX_NUMBER_OF_WORDS));
 $minWordLength = max(0, intParam('minWordLength', 0));
 $maxWordLength = max(0, intParam('maxWordLength', 0));
@@ -112,7 +138,8 @@ $maxScore = floatParam('maxScore');
 $tiers = array_values(array_intersect(listParam('tiers', count(TIERS)), TIERS)) ?: DEFAULT_TIERS;
 
 // Build the filter on the word table from whichever options were supplied.
-// Each "?" placeholder is filled from $parameters, in order.
+// Each "?" placeholder is filled from $parameters, in order. Every column named here is in
+// idx_word_pick (digits = 0 is the index's own condition), so the scan never leaves it.
 $conditions = ['word.digits = 0'];
 $parameters = [];
 
@@ -131,7 +158,6 @@ if (!flagParam('archaic', true)) {
 if (!flagParam('technical', true)) {
    $conditions[] = 'word.technical = 0';
 }
-// These three columns are not in idx_word_pick, so excluding them costs a row lookup per candidate.
 if (!flagParam('hyphenated', true)) {
    $conditions[] = 'word.hyphenated = 0';
 }
@@ -168,15 +194,35 @@ if ($maxWordLength > 0) {
    $conditions[] = 'word.length <= ?';
    $parameters[] = $maxWordLength;
 }
-$parameters[] = $numberOfWords;
 
-$where = 'WHERE ' . implode("\n         AND ", $conditions);
+$filter = implode("\n     AND ", $conditions);
 
-// Two steps in one statement: the inner query picks the ids by sorting the eligible word
-// rows at random, and the outer query builds the JSON for just those words. The outer
-// ORDER BY keeps the batch itself in random order. The meanings come out in their stored
-// order (ord) because the derived table feeding json_group_array is sorted by it.
-$sql = "
+// Step 1, first try: random ids looked up by primary key, keeping those that pass the
+// filter. The ids travel as one JSON array parameter. NOT INDEXED stops SQLite from
+// answering the tier test from idx_word_pick instead, which would turn the lookups back
+// into a scan of the index; the primary key is still used.
+$randomIdsSql = "
+   SELECT id
+   FROM word NOT INDEXED
+   WHERE id IN (SELECT value FROM json_each(?))
+     AND $filter
+   ORDER BY random()
+   LIMIT ?
+";
+
+// Step 1, fallback: every word that passes the filter, sorted at random.
+$scanSql = "
+   SELECT id
+   FROM word
+   WHERE $filter
+   ORDER BY random()
+   LIMIT ?
+";
+
+// Step 2: the JSON for the chosen words. ORDER BY random() puts the batch in random order.
+// The meanings come out in their stored order (ord) because the derived table feeding
+// json_group_array is sorted by it.
+$jsonSql = "
    SELECT json_object(
       'word', word.word,
       'tier', word.tier,
@@ -212,13 +258,7 @@ $sql = "
       )
    ) AS word_json
    FROM word
-   WHERE word.id IN (
-      SELECT word.id
-      FROM word
-      $where
-      ORDER BY random()
-      LIMIT ?
-   )
+   WHERE word.id IN (SELECT value FROM json_each(?))
    ORDER BY random()
 ";
 
@@ -228,21 +268,27 @@ try {
    $db->enableExceptions(true);
    $openSeconds = microtime(true) - $openStarted;
 
-   $queryStarted = microtime(true);
-   $statement = $db->prepare($sql);
-   foreach ($parameters as $index => $value) {
-      // SQLite numbers its placeholders from 1.
-      $statement->bindValue($index + 1, $value, is_int($value) ? SQLITE3_INTEGER : (is_float($value) ? SQLITE3_FLOAT : SQLITE3_TEXT));
+   $pickStarted = microtime(true);
+   // Ids run from 1 to the highest with no gaps, so any number in that range is a word.
+   $maxId = (int) $db->querySingle('SELECT MAX(id) FROM word');
+   $randomIds = [];
+   for ($i = 0; $i < $numberOfWords * RANDOM_IDS_PER_WORD; $i++) {
+      $randomIds[] = random_int(1, $maxId);
    }
-   $results = $statement->execute();
+   $ids = array_column(query($db, $randomIdsSql, [json_encode($randomIds), ...$parameters, $numberOfWords]), 'id');
+   $pickMethod = 'random ids';
+   if (count($ids) < $numberOfWords) {
+      $ids = array_column(query($db, $scanSql, [...$parameters, $numberOfWords]), 'id');
+      $pickMethod = 'random ids, then scan';
+   }
+   $pickSeconds = microtime(true) - $pickStarted;
 
-   // SQLite runs the statement lazily, so the scan, random sort and JSON building
-   // all happen inside this loop; the query time is measured around it.
-   $words = [];
-   while ($row = $results->fetchArray(SQLITE3_ASSOC)) {
-      $words[] = json_decode($row['word_json'], true);
-   }
-   $querySeconds = microtime(true) - $queryStarted;
+   $jsonStarted = microtime(true);
+   $words = array_map(
+      fn ($row) => json_decode($row['word_json'], true),
+      query($db, $jsonSql, [json_encode($ids)]),
+   );
+   $jsonSeconds = microtime(true) - $jsonStarted;
 
    $encodeStarted = microtime(true);
    $json = json_encode($words);
@@ -252,9 +298,11 @@ try {
    // as PHP saw it, so whatever the browser measures beyond that is network, Cloudflare
    // and web-server time. Headers must go out before any output.
    header(sprintf(
-      'Server-Timing: db-open;dur=%.1f, query;dur=%.1f;desc="random pick + JSON", encode;dur=%.1f, php;dur=%.1f;desc="whole request in PHP"',
+      'Server-Timing: db-open;dur=%.1f, pick;dur=%.1f;desc="%s", json;dur=%.1f;desc="meanings for the winners", encode;dur=%.1f, php;dur=%.1f;desc="whole request in PHP"',
       $openSeconds * 1000,
-      $querySeconds * 1000,
+      $pickSeconds * 1000,
+      $pickMethod,
+      $jsonSeconds * 1000,
       $encodeSeconds * 1000,
       (microtime(true) - $requestStarted) * 1000,
    ));

@@ -752,16 +752,22 @@ def main():
         ])
     timings.append(("pass 2", time.monotonic() - step))
 
-    print("Indexes and vacuum")
+    print("Indexes, statistics and vacuum")
     step = time.monotonic()
     db.executescript("""
         CREATE INDEX idx_word_word ON word(word);
-        CREATE INDEX idx_word_pick ON word(multiword, capitalized, pointer_only, tier, archaic, technical, length, pos_mask);
+        -- Every column get_words.php can filter on, so its random pick never has to leave the
+        -- index for the row. Partial: words with digits are never served, so they are left out.
+        CREATE INDEX idx_word_pick ON word(multiword, capitalized, pointer_only, tier, archaic, technical,
+                                           hyphenated, apostrophe, nonascii, length, pos_mask, zipf)
+           WHERE digits = 0;
         CREATE INDEX idx_meaning_word ON meaning(word_id, ord);
         CREATE INDEX idx_example_meaning ON example(meaning_id);
         CREATE INDEX idx_synonym_meaning ON synonym(meaning_id);
         CREATE INDEX idx_pronunciation_word ON pronunciation(word_id);
         CREATE INDEX idx_etymology_word ON etymology(word_id);
+        -- row-count statistics, so the planner prefers a few primary-key lookups over an index scan
+        ANALYZE;
     """)
     integrity = db.execute("PRAGMA integrity_check").fetchone()[0]
     if integrity != "ok":

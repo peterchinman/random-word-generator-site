@@ -117,14 +117,16 @@ function wordQuery({
    return params.toString();
 }
 
+// Reads a fetch() response as the JSON array of words; rejects if the request failed
+function parseWords(response) {
+   if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+   }
+   return response.json();
+}
+
 function fetchWords(query) {
-   return fetch(`/api/get_words.php?${query}`)
-      .then((response) => {
-         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-         }
-         return response.json();
-      });
+   return fetch(`/api/get_words.php?${query}`).then(parseWords);
 }
 
 // PREFETCHING
@@ -174,12 +176,13 @@ const $thumbs = $slider.querySelectorAll('input[type="range"]');
 $thumbs.forEach(($thumb) => { $thumb.max = TIERS.length - 1; });
 $slider.style.setProperty('--steps', TIERS.length - 1);
 
-// one tick mark on the track per tier
+// A tick mark on the track for each tier between the ends. The two at the ends are left out:
+// they sit under the thumbs' resting places, where they mark nothing the thumb does not.
 const $ticks = document.createElement('div');
 $ticks.className = 'ticks';
-TIERS.forEach((tier, index) => {
+TIERS.slice(1, -1).forEach((tier, index) => {
    const $tick = document.createElement('span');
-   $tick.style.setProperty('--i', index);
+   $tick.style.setProperty('--i', index + 1); // still the tier's own index, for positioning
    $ticks.append($tick);
 });
 $slider.querySelector('.track').after($ticks);
@@ -550,6 +553,15 @@ function updateCurrentlySelectedWord($targetElement) {
 
 
 // INITIAL LOAD
+// index.html starts the first request from <head>, before the stylesheets are fetched (scripts at
+// the end of the page cannot run until those have loaded), and leaves it in window.firstWords as
+// { query, response }. It is treated like a prefetched batch: used if the form still asks for the
+// same thing, ignored otherwise (a browser may restore other settings on reload).
 
+if (window.firstWords) {
+   const promise = window.firstWords.response.then(parseWords);
+   promise.catch(() => {}); // stops a failed early request being reported as an unhandled rejection
+   prefetched = { query: window.firstWords.query, promise };
+}
 updateSavedWords();
 getRandomWords(optionsFromForm());

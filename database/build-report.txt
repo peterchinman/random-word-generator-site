@@ -9,8 +9,8 @@ extract:  /Users/peterchinman/Code/random-word-generator-site/database/build/ext
   extracted: 2026-09-20T16:36:07+00:00
 scores:   /Users/peterchinman/Code/random-word-generator-site/database/zipf.tsv.gz
 books:    /Users/peterchinman/Code/random-word-generator-site/database/books.tsv.gz
-database: /Users/peterchinman/Code/random-word-generator-site/database/dictionary.db (422 MB)
-timings:  pass 1 11s, pass 2 20s, index+vacuum 7s, total 38s
+database: /Users/peterchinman/Code/random-word-generator-site/database/dictionary.db (430 MB)
+timings:  pass 1 11s, pass 2 19s, index+vacuum 7s, total 36s
 
 Counts
 ------
