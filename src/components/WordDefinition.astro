@@ -1,0 +1,14 @@
+---
+import BookmarkIcon from './BookmarkIcon.astro';
+import CloseIcon from './CloseIcon.astro';
+---
+<template id="word-definition-template">
+   <definition-panel>
+      <div class="tools">
+         <div class="x-out-div"><CloseIcon /></div>
+         <div class="bookmark"><BookmarkIcon /></div>
+      </div>
+      <h3 class="attention-voice"></h3>
+      <ol class="definitions"></ol>
+   </definition-panel>
+</template>

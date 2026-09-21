@@ -1,0 +1,20 @@
+---
+import { TIERS } from '../../lib/word-options.js';
+interface Props { low?: number; high?: number }
+const { low = 0, high = 3 } = Astro.props;
+---
+<fieldset class="range" id="rareness">
+   <legend>Rareness</legend>
+   <div class="slider">
+      <div class="track"></div>
+      <input type="range" name="tier-a" min="0" max={TIERS.length - 1} value={low} aria-label="Rareness, first handle" />
+      <input type="range" name="tier-b" min="0" max={TIERS.length - 1} value={high} aria-label="Rareness, second handle" />
+   </div>
+   <div class="readout">
+      <p class="from"><span class="preposition">from</span> <span class="tier-name"></span> <span class="examples"></span></p>
+      <p class="to"><span class="preposition">to</span> <span class="tier-name"></span> <span class="examples"></span></p>
+   </div>
+   <datalist id="tiers">
+      {TIERS.map(tier => <option value={tier.code} label={tier.name} data-examples={tier.examples} />)}
+   </datalist>
+</fieldset>

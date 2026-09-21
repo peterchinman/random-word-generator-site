@@ -1,0 +1,17 @@
+---
+interface Props { page: 'words' | 'phrases' }
+const { page } = Astro.props;
+const word = page === 'phrases' ? 'Phrase' : 'Word';
+const titleWords = {
+   "words": "Wind,Wisp,Wave,Wool,Womb,Wine,Word,Wash,Want,Wage,Whim,Wand,Wall,Wail,Worm,Work,Wing,Warp,Wood,Wink,Wart,Wick,Whip,Weed,Wasp,Welt,Wire,Walk,Wife,Wolf,Week,Wish",
+   "phrases": "Person,Python,Podium,Potter,Poodle,Pundit,Puzzle,Puppet,Pillar,Pepper,Pallet,Potion,Picket,Puddle,Pickle,Parcel,Prince,Pillow,Pledge,Pencil,Priest,Psyche,Potato,Pocket,Piston,Picnic,Pulpit,Player,Palace,Prayer"
+};
+---
+<header>
+   <inner-column>
+      <h1 class="title" aria-label={`Random ${word} Generator`}><span class="title-text">Random <span class="title-word-cursor-container"><span id="title-word" data-title-words={titleWords[page]}>{word}</span><span class="cursor"></span><span id="title-spaces"></span></span> Generator</span></h1>
+      <nav class="generator-nav" aria-label="Generators">
+         <a href="/" aria-current={page === 'words' ? 'page' : undefined}>Words</a><a href="/phrases/" aria-current={page === 'phrases' ? 'page' : undefined}>Phrases</a>
+      </nav>
+   </inner-column>
+</header>

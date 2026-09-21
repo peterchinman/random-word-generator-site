@@ -1,4 +1,3 @@
-
 /* set global box-model so that padding and borders stay inside */
 html {
   box-sizing: border-box;

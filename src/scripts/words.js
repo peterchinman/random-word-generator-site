@@ -1,53 +1,7 @@
-// TITLE ANIMATION
-// Every few seconds the "Word" in the page title is deleted back to the longest
-// prefix it shares with a randomly chosen W-word, and the new word is typed out.
-
-const titleWords = [
-   "Wind", "Wisp", "Wave", "Wool", "Womb", "Wine", "Word", "Wash", "Want", "Wage", "Whim", "Wand", "Wall", "Wail", "Worm", "Work", "Wing", "Warp", "Wood", "Wink", "Wart", "Wick", "Whip", "Weed", "Wasp", "Welt", "Wire", "Walk", "Wife", "Wolf", "Week", "Wish"
-];
-
-const $titleWord = document.querySelector('#title-word');
-const $titleSpaces = document.querySelector('#title-spaces');
-const initialDelay = 4000;
-
-function changeWord() {
-   const betweenWordDelay = 4000;
-   const startNewWordDelay = 0;
-   const typingDelay = 250;
-   const deleteDelay = 250;
-   const newWord = titleWords[Math.floor(Math.random() * titleWords.length)];
-
-   let currentText = $titleWord.textContent;
-
-   // Delete one letter at a time until what's left is a prefix of the new word
-   let interval = setInterval(() => {
-      if (newWord.startsWith(currentText)) {
-         clearInterval(interval);
-         // then type the rest of the new word, one letter at a time
-         setTimeout(() => {
-            const chars = newWord.slice(currentText.length).split("");
-            interval = setInterval(() => {
-               if (chars.length === 0) {
-                  clearInterval(interval);
-                  setTimeout(changeWord, betweenWordDelay);
-                  return;
-               }
-               currentText += chars.shift();
-               $titleWord.textContent = currentText;
-               $titleSpaces.innerHTML = $titleSpaces.innerHTML.replace(/&nbsp;/, "");
-            }, typingDelay);
-         }, startNewWordDelay);
-      } else {
-         currentText = currentText.slice(0, -1);
-         $titleWord.textContent = currentText;
-         // pad with a space so the rest of the title doesn't shift left
-         $titleSpaces.innerHTML += '&nbsp;';
-      }
-   }, deleteDelay);
-}
-setTimeout(changeWord, initialDelay);
-
-
+import { wordQuery, parseWords, fetchWords } from '../lib/words-api.js';
+import { createRarenessSlider, attachLengthSteppers } from '../lib/filter-controls.js';
+import { copyLines } from '../lib/clipboard.js';
+import { renderMeanings, scrollParent } from '../lib/definitions.js';
 
 // TOUCHSCREEN BUTTON PRESSES
 // Touch devices have no hover state, so mimic one with a class while a finger is down.
@@ -68,17 +22,7 @@ $form.addEventListener('submit', (event) => {
    getRandomWords(optionsFromForm());
 });
 
-// The arrow buttons beside the min/max fields step the number up or down, within the field's min and max
-$form.addEventListener('click', (event) => {
-   const $button = event.target.closest('.crement');
-   if (!$button) return;
-   const $input = $button.parentElement.querySelector('input');
-   if ($button.classList.contains('increment')) {
-      $input.stepUp();
-   } else {
-      $input.stepDown();
-   }
-});
+attachLengthSteppers($form);
 
 // The form's current settings, in the shape getRandomWords expects
 function optionsFromForm() {
@@ -91,42 +35,6 @@ function optionsFromForm() {
       tiers: selectedTiers(),
       include: formData.getAll('include'),
    };
-}
-
-// The Options pills, in the order their flags go into the query string. Each is sent as 1
-// if its pill is checked and 0 if not, so the string never depends on the API's own defaults.
-// The API's other flags (pointers, nonascii) have no pill and are left to their defaults.
-const INCLUDE_FLAGS = ['multiword', 'hyphenated', 'apostrophe', 'capitalized', 'archaic', 'technical'];
-
-// The API query string for a set of options. Missing or empty values are normalised so that
-// the same settings always give the same string (the prefetched batch is keyed on it).
-// An empty tiers list is sent as is: the API then falls back to its default tiers.
-function wordQuery({
-   numberOfWords, partsOfSpeech = [], minWordLength, maxWordLength, tiers = [], include = [],
-} = {}) {
-   const params = new URLSearchParams({
-      numberOfWords: Number(numberOfWords) || 25,
-      partsOfSpeech: partsOfSpeech.join(','),
-      minWordLength: Number(minWordLength) || 0,
-      maxWordLength: Number(maxWordLength) || 0,
-      tiers: tiers.join(','),
-   });
-   for (const flag of INCLUDE_FLAGS) {
-      params.set(flag, include.includes(flag) ? 1 : 0);
-   }
-   return params.toString();
-}
-
-// Reads a fetch() response as the JSON array of words; rejects if the request failed
-function parseWords(response) {
-   if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-   }
-   return response.json();
-}
-
-function fetchWords(query) {
-   return fetch(`/api/get_words.php?${query}`).then(parseWords);
 }
 
 // PREFETCHING
@@ -158,121 +66,12 @@ function getRandomWords(options) {
       .catch((error) => console.error('Error fetching words:', error));
 }
 
-// RARENESS SLIDER
-// Two range inputs lie on top of each other to make the two thumbs; only the thumbs take the
-// pointer. Either thumb can be dragged past the other, so the chosen tiers always run from the
-// lower value to the higher and neither thumb can get stuck under the other. The tiers
-// themselves (API code, display name, example words) are the options of #tiers in index.html.
-
-const TIERS = [...document.querySelectorAll('#tiers option')].map(($option) => ({
-   code: $option.value,
-   name: $option.label,
-   examples: $option.dataset.examples,
-}));
-const $rareness = document.querySelector('#rareness');
-const $slider = $rareness.querySelector('.slider');
-const $thumbs = $slider.querySelectorAll('input[type="range"]');
-
-$thumbs.forEach(($thumb) => { $thumb.max = TIERS.length - 1; });
-$slider.style.setProperty('--steps', TIERS.length - 1);
-
-// A tick mark on the track for each tier between the ends. The two at the ends are left out:
-// they sit under the thumbs' resting places, where they mark nothing the thumb does not.
-const $ticks = document.createElement('div');
-$ticks.className = 'ticks';
-TIERS.slice(1, -1).forEach((tier, index) => {
-   const $tick = document.createElement('span');
-   $tick.style.setProperty('--i', index + 1); // still the tier's own index, for positioning
-   $ticks.append($tick);
-});
-$slider.querySelector('.track').after($ticks);
-
-// The chosen tiers as [lowest index, highest index]
-function tierRange() {
-   const values = [...$thumbs].map(($thumb) => Number($thumb.value));
-   return [Math.min(...values), Math.max(...values)];
-}
-
-// The API codes of the chosen tiers, least rare first
-function selectedTiers() {
-   const [low, high] = tierRange();
-   return TIERS.slice(low, high + 1).map((tier) => tier.code);
-}
-
-// Brings the filled stretch of track and the readout in line with the thumbs
-function updateRareness() {
-   const [low, high] = tierRange();
-   $slider.style.setProperty('--low', low);
-   $slider.style.setProperty('--high', high);
-   const $from = $rareness.querySelector('.from');
-   const $to = $rareness.querySelector('.to');
-   $from.querySelector('.preposition').textContent = low === high ? 'only' : 'from';
-   $from.querySelector('.tier-name').textContent = TIERS[low].name;
-   $from.querySelector('.examples').textContent = TIERS[low].examples;
-   $to.querySelector('.tier-name').textContent = TIERS[high].name;
-   $to.querySelector('.examples').textContent = TIERS[high].examples;
-   $to.hidden = low === high;
-}
-
-$slider.addEventListener('input', updateRareness);
-// a form reset puts the thumbs back after the reset event has fired, hence the timeout
-$form.addEventListener('reset', () => setTimeout(updateRareness));
-updateRareness();
-
-
-
-// Open the Filters section automatically on wide screens.
-// If you change this breakpoint, also change it in the CSS media query.
-const wideBreakPoint = "1020px";
-function openFilters() {
-   if (window.matchMedia(`(min-width: ${wideBreakPoint})`).matches) {
-      document.querySelector('#filters').open = true;
-   }
-}
-openFilters();
-window.addEventListener('resize', openFilters);
-
-
-
-// COLOR THEMES
-// Two switches: palette (pinkish or bluish) and mode (light or dark). Each combination
-// is a pair of body classes, e.g. "pink dark", that style.css defines a theme for.
-// The palette choice is remembered in localStorage; light or dark follows the system
-// setting unless the visitor flips the mode switch during this visit.
-// (A small inline script in index.html applies the same rules before first paint.)
-
-const $pinkBlue = document.querySelector('#pink-blue');
-const $lightDark = document.querySelector('#light-dark');
-const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
-
-function applyTheme() {
-   document.body.classList.toggle('blue', $pinkBlue.checked);
-   document.body.classList.toggle('pink', !$pinkBlue.checked);
-   document.body.classList.toggle('dark', $lightDark.checked);
-   document.body.classList.toggle('light', !$lightDark.checked);
-}
-
-$pinkBlue.checked = localStorage.getItem('palette') === 'blue';
-$lightDark.checked = prefersDark.matches;
-applyTheme();
-
-$pinkBlue.addEventListener('change', () => {
-   localStorage.setItem('palette', $pinkBlue.checked ? 'blue' : 'pink');
-   applyTheme();
-});
-
-let modeChosenByHand = false;
-$lightDark.addEventListener('change', () => {
-   modeChosenByHand = true;
-   applyTheme();
-});
-prefersDark.addEventListener('change', () => {
-   if (modeChosenByHand) return;
-   $lightDark.checked = prefersDark.matches;
-   applyTheme();
-});
-
-
+// The same controls power both pages; this page reads their values on Generate.
+const rareness = createRarenessSlider(document.querySelector('#rareness'));
+const selectedTiers = rareness.selectedTiers;
+document.querySelector('#rareness').addEventListener('input', rareness.update);
+$form.addEventListener('reset', () => setTimeout(rareness.update));
+rareness.update();
 
 // WORD TILES, DEFINITION PANELS AND BOOKMARKS
 
@@ -312,7 +111,11 @@ document.addEventListener('click', (event) => {
    }
 
    if ($target.matches('#copy-saved-words')) {
-      copySavedWords($target);
+      copyWords($target, getSavedWords().map((word) => word.name));
+   }
+   if ($target.matches('#copy-generated-words')) {
+      const names = [...document.querySelectorAll('#generated-words-list word-tile')].map(($tile) => $tile.dataset.word);
+      copyWords($target, names);
    }
 });
 
@@ -362,15 +165,8 @@ function toggleBookmark($wordTile) {
    }
 }
 
-function copySavedWords($button) {
-   const names = getSavedWords().map((word) => word.name);
-   if (names.length === 0 || !navigator.clipboard) return;
-   navigator.clipboard.writeText(names.join('\n'))
-      .then(() => {
-         $button.textContent = 'Copied';
-         setTimeout(() => { $button.textContent = 'Copy'; }, 1500);
-      })
-      .catch((error) => console.error('Could not copy saved words:', error));
+function copyWords(button, names) {
+   copyLines(button, names).catch(error => console.error('Could not copy words:', error));
 }
 
 function panelCloseOut($panel) {
@@ -425,6 +221,7 @@ function processRandomWordData(data) {
    });
 
    document.querySelector('#number-of-words').textContent = data.length;
+   document.querySelector('#copy-generated-words').disabled = data.length === 0;
    document.querySelector('#generated-words').classList.remove('empty');
 }
 
@@ -433,68 +230,16 @@ function createWordTile(word) {
    $wordTile.textContent = word.word;
    $wordTile.dataset.word = word.word;
    $wordTile.setAttribute("tabindex", "0");
-   $wordTile.insertAdjacentHTML('beforeend', createDefinitionPanel(word));
+   $wordTile.append(createDefinitionPanel(word));
    return $wordTile;
 }
 
-// Escapes text for safe insertion into an HTML string
-function escapeHTML(text) {
-   return String(text)
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;');
-}
-
-function createHTMLDefinitionList(meanings) {
-   return meanings.map((meaning) => {
-      let extras = "";
-      if (meaning.example) {
-         extras += `<p>example: ${escapeHTML(meaning.example)}</p>`;
-      }
-      if (meaning.synonyms.length > 0) {
-         extras += `<p>synonym(s): ${meaning.synonyms.map(escapeHTML).join(', ')}</p>`;
-      }
-      return `
-         <li>
-            <p>${escapeHTML(meaning.speech_part)}, ${escapeHTML(meaning.definition)}</p>
-            ${extras}
-         </li>
-      `;
-   }).join("");
-}
-
 function createDefinitionPanel(word) {
-   return `
-   <definition-panel data-word="${escapeHTML(word.word)}">
-      <div class="tools">
-         <div class="x-out-div">
-            <svg class="x-out-path" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" >
-               <path  d="M1 1L31 31M1 31L31 1" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-         </div>
-
-         <div class="bookmark">
-            <svg class=" bookmark-svg" width="31" height="43" viewBox="0 0 31 43" fill="none" xmlns="http://www.w3.org/2000/svg">
-               <path  d="M2.5 0.5H28.5C29.3284 0.5 30 1.17157 30 2V37.6688C30 39.0521 28.2868 39.6981 27.3734 38.6591L17.3776 27.2887C16.382 26.1562 14.618 26.1562 13.6224 27.2887L3.62657 38.6591C2.71323 39.6981 1 39.0521 1 37.6688V2C1 1.17157 1.67157 0.5 2.5 0.5Z"  stroke-linecap="square" stroke-linejoin="round"/>
-            </svg>
-         </div>
-      </div>
-      <h3 class="attention-voice">${escapeHTML(word.word)}</h3>
-      <ol class="definitions">
-         ${createHTMLDefinitionList(word.meanings)}
-      </ol>
-   </definition-panel>
-   `;
-}
-
-// The nearest ancestor that scrolls (the results column on wide screens), or null when the window does
-function scrollParent($element) {
-   for (let $node = $element.parentElement; $node; $node = $node.parentElement) {
-      const overflowY = getComputedStyle($node).overflowY;
-      if (overflowY === 'auto' || overflowY === 'scroll') return $node;
-   }
-   return null;
+   const panel = document.querySelector('#word-definition-template').content.firstElementChild.cloneNode(true);
+   panel.dataset.word = word.word;
+   panel.querySelector('h3').textContent = word.word;
+   renderMeanings(panel.querySelector('.definitions'), word.meanings);
+   return panel;
 }
 
 // Positions a tile's definition panel: below the tile by default, above it when there isn't room
@@ -553,7 +298,7 @@ function updateCurrentlySelectedWord($targetElement) {
 
 
 // INITIAL LOAD
-// index.html starts the first request from <head>, before the stylesheets are fetched (scripts at
+// FirstWords.astro starts the first request from <head>, before the stylesheets are fetched (scripts at
 // the end of the page cannot run until those have loaded), and leaves it in window.firstWords as
 // { query, response }. It is treated like a prefetched batch: used if the form still asks for the
 // same thing, ignored otherwise (a browser may restore other settings on reload).

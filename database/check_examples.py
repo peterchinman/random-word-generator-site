@@ -2,10 +2,11 @@
 """
 Checks that the example words shown on the site still match the dictionary.
 
+    npm run build
     python3 database/check_examples.py
 
 The site illustrates every rareness tier and every Options pill with three example words,
-kept in public/index.html. A build.py run can move a word into another tier or drop a flag,
+defined in src/lib/word-options.js and rendered into dist/index.html by Astro. A build.py run can move a word into another tier or drop a flag,
 which leaves those examples quietly wrong. This reads the words out of the page, looks each
 one up in database/dictionary.db and exits non-zero if any of them no longer fits, so it can
 be run after every build.
@@ -17,15 +18,16 @@ form's default settings ask for (if not, the early response is wasted and the fi
 is fetched again).
 """
 
-import re
 import sqlite3
 import sys
 from html.parser import HTMLParser
 from pathlib import Path
+from urllib.parse import parse_qsl
 
 HERE = Path(__file__).resolve().parent
 DATABASE = HERE / "dictionary.db"
-PAGE = HERE.parent / "public" / "index.html"
+PAGE = HERE.parent / "dist" / "index.html"
+PHRASE_PAGE = HERE.parent / "dist" / "phrases" / "index.html"
 API = HERE.parent / "public" / "api" / "get_words.php"
 
 # Each Options pill promises its examples have this column set to 1.
@@ -38,7 +40,7 @@ PILL_COLUMNS = {
     "technical": "technical",
 }
 
-# wordQuery() in javascript.js sends the Options pills last, in this order.
+# wordQuery() in src/lib/words-api.js sends the Options pills last, in this order.
 INCLUDE_FLAGS = ["multiword", "hyphenated", "apostrophe", "capitalized", "archaic", "technical"]
 
 
@@ -50,9 +52,8 @@ class Page(HTMLParser):
         self.tiers = []          # (tier code, name shown, [example words])
         self.pills = []          # (pill value, name shown, [example words])
         self.inputs = []         # attributes of every <input>, in page order
-        self.script = ""         # the text of every inline <script>
+        self.first_words_query = None  # data-query on the early fetch script
         self._in_tier_list = False
-        self._in_script = False
         self._label = None       # the label being read: [examples, text so far]
 
     def handle_starttag(self, tag, attrs):
@@ -67,22 +68,18 @@ class Page(HTMLParser):
             self.pills.append((attrs["value"], self._label[1].strip(), self._label[0]))
         if tag == "input":
             self.inputs.append(attrs)
-        elif tag == "script":
-            self._in_script = True
+        elif tag == "script" and attrs.get("id") == "first-words":
+            self.first_words_query = attrs.get("data-query")
 
     def handle_endtag(self, tag):
         if tag == "datalist":
             self._in_tier_list = False
         elif tag == "label":
             self._label = None
-        elif tag == "script":
-            self._in_script = False
 
     def handle_data(self, data):
         if self._label is not None:
             self._label[1] += data
-        if self._in_script:
-            self.script += data
 
 
 def split(value):
@@ -90,7 +87,7 @@ def split(value):
 
 
 def form_default_query(page):
-    """The (name, value) pairs wordQuery() in javascript.js sends for the form as the page loads it."""
+    """The (name, value) pairs wordQuery() in src/lib/words-api.js sends for the form as the page loads it."""
     def inputs(name):
         return [attrs for attrs in page.inputs if attrs.get("name") == name]
 
@@ -114,11 +111,7 @@ def form_default_query(page):
 
 def head_query(page):
     """The (name, value) pairs the <head> script in index.html requests, or None if there is no such script."""
-    match = re.search(r"window\.firstWords.*?new URLSearchParams\(\{(.*?)\}\)", page.script, re.S)
-    if match is None:
-        return None
-    pairs = re.findall(r"(\w+):\s*('[^']*'|\"[^\"]*\"|\d+)", match.group(1))
-    return [(name, value.strip("'\"")) for name, value in pairs]
+    return parse_qsl(page.first_words_query, keep_blank_values=True) if page.first_words_query is not None else None
 
 
 def api_tiers():
@@ -133,10 +126,22 @@ def main():
     if not DATABASE.exists():
         sys.exit(f"no database at {DATABASE}; build it or download the release first")
 
+    if not PAGE.exists() or not PHRASE_PAGE.exists():
+        sys.exit("built pages are missing; run npm run build before checking examples")
+
     page = Page()
     page.feed(PAGE.read_text())
     db = sqlite3.connect(f"file:{DATABASE}?mode=ro", uri=True)
     problems = 0
+
+    # Both pages use the same Astro controls. Check their rendered output as well
+    # so component props cannot accidentally diverge on one page.
+    phrases = Page()
+    phrases.feed(PHRASE_PAGE.read_text())
+    for attribute in ("tiers", "pills"):
+        if getattr(phrases, attribute) != getattr(page, attribute):
+            print(f"PHRASES  {attribute} differ between the word and phrase pages")
+            problems += 1
 
     # The same seven tiers, in the same order, in all three places?
     in_page = [code for code, _, _ in page.tiers]

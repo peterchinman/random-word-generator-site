@@ -1,0 +1,59 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import WordFilters from '../components/WordFilters.astro';
+import GeneratorButtons from '../components/GeneratorButtons.astro';
+import WordDefinition from '../components/WordDefinition.astro';
+import FirstWords from '../components/FirstWords.astro';
+import { DEFAULT_WORD_OPTIONS } from '../lib/word-options.js';
+---
+<SiteLayout page="words" description="Find fate in the stochastic.">
+<FirstWords slot="head" />
+<main>
+	<form id="word-options">
+		<inner-column>
+			<!-- on wide screens this scrolls on its own, so the buttons below never leave the view -->
+			<div class="scroll-area">
+				<fieldset class="options">
+					<legend>Number of words to generate</legend>
+					{[10, 15, 25, 40].map(count => (
+						<label>{count}<input type="radio" name="number-words" value={count} checked={DEFAULT_WORD_OPTIONS.numberOfWords === count} /></label>
+					))}
+				</fieldset>
+				<WordFilters />
+			</div>
+			<GeneratorButtons />
+		</inner-column>
+	</form>
+
+	<div id="results">
+		<section class="word-sections empty" id="generated-words">
+			<inner-column>
+				<div class="upper-part">
+					<h2 class="attention-voice"><span id="number-of-words"></span> Random Words</h2>
+					<div class="tools">
+						<button type="button" id="copy-generated-words" aria-live="polite" disabled>Copy</button>
+					</div>
+				</div>
+				<word-list id="generated-words-list"></word-list>
+				<p>click on a word for a definition</p>
+			</inner-column>
+		</section>
+		<section class="word-sections empty" id="saved-words">
+			<inner-column>
+				<div class="upper-part">
+					<h2 class="loud-voice">Saved Words</h2>
+					<div class="tools">
+						<button type="button" id="clear-saved-words">Clear</button>
+						<button type="button" id="copy-saved-words">Copy</button>
+					</div>
+				</div>
+				<word-list id="saved-words-list"></word-list>
+			</inner-column>
+		</section>
+	</div>
+</main>
+<WordDefinition />
+</SiteLayout>
+<script>
+   import '../scripts/words.js';
+</script>

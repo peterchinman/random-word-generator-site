@@ -1,0 +1,22 @@
+---
+import LengthInput from './LengthInput.astro';
+import { INCLUDE_OPTIONS } from '../../lib/word-options.js';
+---
+<details id="options">
+   <summary>
+      More Options
+      <svg class="option-arrow-svg" width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+         <path d="M1.5 1.21094L7.5 4.99993L1.5 8.78892" stroke="black" stroke-width="2" stroke-linecap="round" />
+      </svg>
+   </summary>
+   <fieldset class="min-max">
+      <legend>Word Length</legend>
+      <LengthInput bound="min" />
+      <LengthInput bound="max" />
+   </fieldset>
+   <fieldset class="options columns-2">
+      {INCLUDE_OPTIONS.map(option => (
+         <label data-examples={option.examples}>{option.label}<input type="checkbox" name="include" value={option.code} checked={option.checked} /></label>
+      ))}
+   </fieldset>
+</details>
