@@ -1,0 +1,17 @@
+<script is:inline id="theme-bootstrap">
+		// Set the canvas and theme before waiting for any stylesheet or external script.
+		(() => {
+			let palette = 'pink', mode;
+			try {
+				if (localStorage.getItem('palette') === 'blue') palette = 'blue';
+				mode = localStorage.getItem('colorMode');
+			} catch { /* Use the system mode when storage is unavailable. */ }
+			const dark = mode === 'dark' || (mode !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+			const root = document.documentElement;
+			root.classList.remove('pink', 'blue', 'light', 'dark');
+			root.classList.add(palette, dark ? 'dark' : 'light', 'theme-initializing');
+			root.style.colorScheme = dark ? 'dark' : 'light';
+			root.style.backgroundColor = palette === 'blue'
+				? (dark ? '#0F1436' : '#E0E1F7') : (dark ? '#25141B' : '#F7EBE4');
+		})();
+	</script>

@@ -1,0 +1,15 @@
+---
+import { DEFAULT_WORD_OPTIONS } from '../lib/word-options.js';
+import { wordQuery } from '../lib/words-api.js';
+const query = wordQuery(DEFAULT_WORD_OPTIONS);
+---
+<script id="first-words" is:inline data-query={query}>
+   // Start fetching before stylesheets load. Use the same query builder and defaults
+   // as the controls; the word controller picks up this promise after the DOM is ready.
+   window.firstWords = (() => {
+      const query = document.currentScript.dataset.query;
+      const response = fetch(`/api/get_words.php?${query}`);
+      response.catch(() => {});
+      return { query, response };
+   })();
+</script>

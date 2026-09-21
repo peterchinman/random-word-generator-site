@@ -1,0 +1,11 @@
+---
+import { PARTS } from '../../lib/word-options.js';
+interface Props { single?: boolean; selected?: string[] }
+const { single = false, selected = [] } = Astro.props;
+---
+<fieldset class="options">
+   <legend>Parts of Speech</legend>
+   {Object.entries(PARTS).map(([value, label]) => (
+      <label>{label}<input type={single ? 'radio' : 'checkbox'} name="parts-of-speech" value={value} checked={selected.includes(value)} /></label>
+   ))}
+</fieldset>

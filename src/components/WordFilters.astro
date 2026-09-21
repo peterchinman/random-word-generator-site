@@ -1,0 +1,12 @@
+---
+import PartsOfSpeech from './filters/PartsOfSpeech.astro';
+import RarenessSlider from './filters/RarenessSlider.astro';
+import MoreOptions from './filters/MoreOptions.astro';
+interface Props { single?: boolean; selected?: string[]; high?: number }
+const { single = false, selected = [], high = 3 } = Astro.props;
+---
+<div id="filters">
+   <PartsOfSpeech single={single} selected={selected} />
+   <RarenessSlider high={high} />
+   <MoreOptions />
+</div>

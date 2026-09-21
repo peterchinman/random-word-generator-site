@@ -6,3 +6,6 @@ database/.venv/
 database/dictionary.db
 database/dictionary.db.tmp
 database/dictionary.db.release
+node_modules/
+dist/
+.astro/

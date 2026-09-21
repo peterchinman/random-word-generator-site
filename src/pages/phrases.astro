@@ -1,0 +1,80 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import WordFilters from '../components/WordFilters.astro';
+import GeneratorButtons from '../components/GeneratorButtons.astro';
+import CloseIcon from '../components/CloseIcon.astro';
+import BookmarkIcon from '../components/BookmarkIcon.astro';
+import '../styles/phrases.css';
+---
+<SiteLayout page="phrases" description="Build random phrases, one word at a time. Choose parts of speech, rareness, and filters for every word.">
+<main>
+	<form id="phrase-options" novalidate>
+		<inner-column>
+			<div class="scroll-area">
+				<section class="phrase-structure" aria-labelledby="structure-heading">
+					<h2 id="structure-heading">Phrase structure</h2>
+					<p class="builder-hint">Choose a word to set its filters. Drag to reorder.</p>
+					<ol id="phrase-slots" aria-label="Word positions"></ol>
+					<p id="slot-reorder-status" role="status" aria-live="polite" aria-atomic="true"></p>
+					<button type="button" id="add-word">+ Add word</button>
+					<p id="slot-limit" class="builder-hint" hidden>Up to 8 words per phrase.</p>
+				</section>
+				<section id="word-editor" aria-labelledby="word-heading">
+					<div class="editor-heading">
+						<h2 id="word-heading" class="attention-voice">Word 1</h2>
+						<div class="slot-tools">
+							<button type="button" id="move-left" aria-label="Move word earlier">←</button>
+							<button type="button" id="move-right" aria-label="Move word later">→</button>
+							<button type="button" id="remove-word" aria-label="Remove selected word">Remove</button>
+						</div>
+					</div>
+					<WordFilters single selected={["adjective"]} high={1} />
+				</section>
+			</div>
+			<GeneratorButtons />
+		</inner-column>
+	</form>
+
+	<div id="results">
+		<section class="word-sections" id="generated-phrases" aria-labelledby="generated-heading">
+			<inner-column>
+				<div class="upper-part">
+					<h2 class="attention-voice" id="generated-heading">Random Phrases</h2>
+					<button type="button" id="copy-phrases" disabled>Copy</button>
+				</div>
+				<p id="phrase-status" role="status" aria-live="polite">Finding a little happenstance…</p>
+				<ul id="generated-phrases-list" class="phrase-list" aria-label="Generated phrases"></ul>
+				<p class="results-hint">Click a word for its definition.</p>
+			</inner-column>
+		</section>
+		<section class="word-sections" id="saved-phrases" aria-labelledby="saved-heading" hidden>
+			<inner-column>
+				<div class="upper-part">
+					<h2 class="attention-voice" id="saved-heading">Saved Phrases</h2>
+					<div class="tools">
+						<button type="button" id="clear-saved-phrases">Clear</button>
+						<button type="button" id="copy-saved-phrases">Copy</button>
+					</div>
+				</div>
+				<ul id="saved-phrases-list" class="phrase-list" aria-label="Saved phrases"></ul>
+			</inner-column>
+		</section>
+	</div>
+</main>
+
+
+<template id="phrase-bookmark"><BookmarkIcon /></template>
+
+<definition-panel id="phrase-definition" role="region" aria-labelledby="definition-heading" tabindex="-1" hidden>
+	<button type="button" id="close-definition" aria-label="Close definition"><CloseIcon />
+	</button>
+	<h2 id="definition-heading" class="attention-voice"></h2>
+	<ol id="phrase-meanings"></ol>
+</definition-panel>
+<noscript><p class="no-script">Enable JavaScript to build and generate phrases.</p></noscript>
+
+
+</SiteLayout>
+<script>
+   import '../scripts/phrases.js';
+</script>

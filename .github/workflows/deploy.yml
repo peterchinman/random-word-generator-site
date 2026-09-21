@@ -12,6 +12,19 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Build and test
+        run: |
+          npm ci
+          npm run build
+          npm test
+          npm run test:build
       
       - name: Set up SSH
         uses: webfactory/ssh-agent@v0.9.0
@@ -29,16 +42,16 @@ jobs:
           DEPLOY_PATH: /var/www/randomwordgenerator.info
           RELEASE_URL: https://github.com/${{ github.repository }}/releases/download
         run: |
-          # Stamp the asset links with this commit's hash so browsers and Cloudflare
-          # fetch fresh CSS and JS after every deploy instead of serving cached copies
-          sed -i "s/?v=dev/?v=${GITHUB_SHA::8}/g" public/index.html
-          grep -c "?v=${GITHUB_SHA::8}" public/index.html
-
-          # Sync the repository to the deploy path. The dictionary is not in the
-          # repository (it is a release asset, fetched below), so it is excluded here,
-          # otherwise --delete would remove the copy already on the server.
+          # Astro emits HTML and hashed CSS/JS into dist, including the PHP API.
+          # Keep the dictionary and existing web-root symlink until the build is
+          # uploaded and the post-deployment tasks below finish.
           rsync -avz --delete \
             --exclude=".git" \
+            --exclude="node_modules" \
+            --exclude=".astro" \
+            --exclude="public_html" \
+            --exclude="database/build" \
+            --exclude="database/.venv" \
             --exclude="database/dictionary.db" \
             --exclude="database/dictionary.db.release" \
             ./ root@$DROPLET_IP:$DEPLOY_PATH
@@ -64,8 +77,8 @@ jobs:
               rm -rf public_html
             fi
 
-            # Re-create the symlink from public_html to public
-            ln -sfn "$DEPLOY_PATH/public" public_html
+            # Serve Astro's generated pages and the copied PHP API together.
+            ln -sfn "$DEPLOY_PATH/dist" public_html
 
             # Set permissions and reload the server
             chown -R www-data:www-data "$DEPLOY_PATH"
