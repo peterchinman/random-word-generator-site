@@ -11,6 +11,27 @@ Source for [randomwordgenerator.info](https://randomwordgenerator.info): an Astr
 - `database/dictionary.db` is the SQLite dictionary the API reads. It is a build artifact published as a GitHub release asset, and the deploy fetches the release named in `database/RELEASE`. `database/schema.sql` describes its tables.
 - `database/` also holds the build stages (`extract.py`, `score.py`, `books.py`, `build.py`), `check_examples.py`, their committed scoring outputs `zipf.tsv.gz` and `books.tsv.gz`, and `build-report.txt`.
 
+## Deriving the Etymology Feed dictionary
+
+The companion Etymology Feed uses a smaller, read-only dictionary derived from the
+release named in `database/RELEASE`. Download that release's `dictionary.db` first,
+then run the standard-library script:
+
+    gh release download "$(cat database/RELEASE)" --pattern dictionary.db --dir database
+    python3 database/derive_etymology.py
+    python3 database/derive_etymology.py --check
+
+It writes ignored `database/etymology.db`, `database/etymology.sql`, and
+`database/etymology-report.txt`. The SQL file imports into Cloudflare D1. It keeps
+the longest etymology for each headword when it is a story of at least 80 characters
+or mentions a source language/period or quoted gloss. Pure word-part formulas and
+short pointers are excluded. Every tier and word shape remains eligible. The
+report records the pool size and samples used to review the classifier and prior;
+the thresholds can be passed as `--story-min-length` and `--pointer-max-length`.
+Cold-start interest priors are clamped to `[0.2, 0.8]` so both Beta shape
+parameters are at least 1 with the feed's default prior strength of 5.
+Publish these three files as extra assets on the same pinned GitHub release.
+
 ## Where the words come from
 
 The dictionary is built from the English Wiktionary data published by [kaikki.org](https://kaikki.org/dictionary/English/) (extracted from Wiktionary with [wiktextract](https://github.com/tatuylonen/wiktextract)). Wiktionary text is licensed [CC BY-SA](https://creativecommons.org/licenses/by-sa/4.0/).
