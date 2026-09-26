@@ -6,6 +6,11 @@ database/.venv/
 database/dictionary.db
 database/dictionary.db.tmp
 database/dictionary.db.release
+database/etymology.db
+database/etymology.db.tmp
+database/etymology.sql
+database/etymology-report.txt
 node_modules/
 dist/
 .astro/
+.wrangler/
