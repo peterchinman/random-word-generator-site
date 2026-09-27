@@ -8,6 +8,7 @@ Only the standard library is required. Outputs are release assets, never git fil
 """
 
 import argparse
+import hashlib
 import json
 import random
 import re
@@ -17,7 +18,7 @@ from collections import Counter
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-SCHEMA_VERSION = "1"
+SCHEMA_VERSION = "2"
 CLASSIFIER_VERSION = "1"
 SEED = 20260925
 SHAPES = (
@@ -89,7 +90,9 @@ PRIOR_TERMS = (
 CREATE_SQL = """
 CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 CREATE TABLE word (
-  word TEXT PRIMARY KEY,
+  id TEXT PRIMARY KEY,
+  word TEXT NOT NULL,
+  etym_no INTEGER,
   ipa TEXT,
   tier TEXT NOT NULL,
   zipf REAL,
@@ -106,9 +109,10 @@ CREATE TABLE word (
 );
 CREATE UNIQUE INDEX idx_word_shuffle ON word(shuffle);
 CREATE INDEX idx_word_prior ON word(prior DESC);
+CREATE INDEX idx_word_headword ON word(word,etym_no);
 """
 WORD_COLUMNS = (
-    "word", "ipa", "tier", "zipf", "shape", "pos", "definition", "def_pos",
+    "id", "word", "etym_no", "ipa", "tier", "zipf", "shape", "pos", "definition", "def_pos",
     "etymology", "etym_len", "etym_band", "has_signal", "prior", "shuffle",
 )
 
@@ -165,17 +169,41 @@ def prior(text, tier, names):
     return round(max(0.2, min(0.8, value)), 4)
 
 
-def meanings(source, word_id):
+def meanings(source, word_id, entry_nos):
     rows = source.execute(
-        "SELECT p.name, m.kind, m.definition, m.demoted FROM meaning m "
+        "SELECT m.entry_no, p.name, m.kind, m.definition, m.demoted FROM meaning m "
         "JOIN pos p ON p.code=m.pos WHERE m.word_id=? ORDER BY m.ord", (word_id,),
     ).fetchall()
+    rows = [row for row in rows if row[0] in entry_nos]
     if not rows:
         return "[]", "", ""
-    parts = list(dict.fromkeys(row[0] for row in rows))
-    chosen = next((row for row in rows if row[1] == "definition" and not row[3]), None)
-    chosen = chosen or next((row for row in rows if row[1] == "definition"), rows[0])
-    return json.dumps(parts, ensure_ascii=False), chosen[2], chosen[0]
+    parts = list(dict.fromkeys(row[1] for row in rows))
+    chosen = next((row for row in rows if row[2] == "definition" and not row[4]), None)
+    chosen = chosen or next((row for row in rows if row[2] == "definition"), rows[0])
+    return json.dumps(parts, ensure_ascii=False), chosen[3], chosen[1]
+
+
+def pronunciation(source, word_id, entry_nos, fallback):
+    rows = source.execute(
+        "SELECT entry_no,ipa,tags FROM pronunciation WHERE word_id=?", (word_id,)
+    )
+    candidates = []
+    for entry_no, ipa, tags_json in rows:
+        if entry_no not in entry_nos:
+            continue
+        tags = set(json.loads(tags_json))
+        rank = (3 if tags & {"General-American", "US"} else
+                2 if tags & {"Received-Pronunciation", "UK"} else
+                1 if not tags else 0)
+        candidates.append((rank + (0.5 if ipa.startswith("/") else 0), ipa))
+    return max(candidates, key=lambda item: item[0])[1] if candidates else fallback
+
+
+def card_id(word, etym_no, text, legacy):
+    if legacy:
+        return word  # Keeps ratings and local served history for the old primary card.
+    digest = hashlib.sha256(json.dumps([word, etym_no, text], ensure_ascii=False).encode()).hexdigest()
+    return "e:" + digest
 
 
 def sql_literal(value):
@@ -231,37 +259,58 @@ def build(args):
     counts, tiers, shapes, bands = Counter(), Counter(), Counter(), Counter()
     morph_sample = Reservoir(25, SEED + 1)
     short_sample = Reservoir(25, SEED + 2)
-    etymologies = iter(source.execute("SELECT word_id,text FROM etymology ORDER BY word_id,id"))
+    columns = {row[1] for row in source.execute("PRAGMA table_info(etymology)")}
+    meaning_columns = {row[1] for row in source.execute("PRAGMA table_info(meaning)")}
+    pronunciation_columns = {row[1] for row in source.execute("PRAGMA table_info(pronunciation)")}
+    if "entry_no" not in columns or "entry_no" not in meaning_columns or "entry_no" not in pronunciation_columns:
+        raise ValueError("source dictionary predates sense-to-etymology links; rebuild it with build.py")
+    etymologies = iter(source.execute(
+        "SELECT word_id,entry_no,etym_no,text FROM etymology ORDER BY word_id,id"
+    ))
     current = next(etymologies, None)
     kept = []
     started = time.monotonic()
     for word in source.execute("SELECT * FROM word ORDER BY id"):
-        best = None
+        groups = {}
         while current is not None and current[0] == word["id"]:
-            if best is None or len(current[1]) > len(best):
-                best = current[1]
+            key = (current[2], current[3])
+            groups.setdefault(key, set()).add(current[1])
             current = next(etymologies, None)
-        if best is None:
+        if not groups:
             continue
-        kind = classify(best, args.pointer_max_length)
-        counts[kind] += 1
-        if kind == "morph":
-            morph_sample.add((word["word"], best))
-        if kind == "story" and len(best) < 40:
-            short_sample.add((word["word"], best))
-        names, has_signal = signals(best)
-        if kind != "story" or not (len(best) >= args.story_min_length or has_signal):
-            continue
-        pos, definition, def_pos = meanings(source, word["id"])
         shape = ",".join(flag for flag in SHAPES if word[flag]) or "plain"
-        score = prior(best, word["tier"], names)
-        kept.append((word["word"], word["ipa"], word["tier"], word["zipf"], shape,
-                     pos, definition, def_pos, best, len(best), band(len(best)),
-                     int(has_signal), score))
-        tiers[word["tier"]] += 1
-        bands[band(len(best))] += 1
-        for flag in shape.split(","):
-            shapes[flag] += 1
+        selected = []
+        for (etym_no, text), entry_nos in groups.items():
+            kind = classify(text, args.pointer_max_length)
+            counts[kind] += 1
+            if kind == "morph":
+                morph_sample.add((word["word"], text))
+            if kind == "story" and len(text) < 40:
+                short_sample.add((word["word"], text))
+            names, has_signal = signals(text)
+            if kind != "story" or not (len(text) >= args.story_min_length or has_signal):
+                continue
+            pos, definition, def_pos = meanings(source, word["id"], entry_nos)
+            if not definition:
+                counts["eligible without paired definition"] += 1
+                continue
+            score = prior(text, word["tier"], names)
+            ipa = pronunciation(source, word["id"], entry_nos, word["ipa"])
+            selected.append((etym_no, text, ipa, pos, definition, def_pos, score, has_signal))
+        if not selected:
+            continue
+        # The longest retained origin is the old card whenever that word was
+        # selected before; new headwords also get a readable primary ID.
+        legacy_key = max(selected, key=lambda item: len(item[1]))[:2]
+        for etym_no, text, ipa, pos, definition, def_pos, score, has_signal in selected:
+            kept.append((card_id(word["word"], etym_no, text, (etym_no, text) == legacy_key),
+                         word["word"], etym_no, ipa, word["tier"], word["zipf"], shape,
+                         pos, definition, def_pos, text, len(text), band(len(text)),
+                         int(has_signal), score))
+            tiers[word["tier"]] += 1
+            bands[band(len(text))] += 1
+            for flag in shape.split(","):
+                shapes[flag] += 1
     rng = random.Random(SEED)
     shuffles = list(range(1, len(kept) + 1))
     rng.shuffle(shuffles)
@@ -297,7 +346,7 @@ def build(args):
         bottom.add((word, text))
     lines = [
         f"Source release: {release}", f"Source dictionary: {args.source}",
-        f"Selected words: {len(kept):,}",
+        f"Selected cards: {len(kept):,}; distinct words: {len({row[1] for row in kept}):,}",
         f"Thresholds: story_min_length={args.story_min_length}, pointer_max_length={args.pointer_max_length}",
         f"Classifier version: {CLASSIFIER_VERSION}",
         f"Elapsed seconds: {time.monotonic() - started:.1f}",
@@ -305,7 +354,7 @@ def build(args):
         f"Tiers: {json.dumps(tiers, sort_keys=True)}",
         f"Shapes (overlapping): {json.dumps(shapes, sort_keys=True)}",
         f"Bands: {json.dumps(bands, sort_keys=True)}", "",
-        "Prior range: [0.2, 0.8] (K=5 gives both cold-start Beta shapes >= 1)", "",
+        "Prior range: [0.2, 0.8] (orders fresh cards only)", "",
     ]
     lines += sample_lines("25 random morph classifications", morph_sample.values)
     lines += sample_lines("25 random story entries under 40 characters", short_sample.values)
@@ -314,7 +363,7 @@ def build(args):
     (output / "etymology-report.txt").write_text("\n".join(lines), encoding="utf-8")
     db.close()
     source.close()
-    print(f"Selected {len(kept):,} words from {release} in {time.monotonic() - started:.1f}s")
+    print(f"Selected {len(kept):,} cards from {release} in {time.monotonic() - started:.1f}s")
     print(f"Wrote {db_path}, {output / 'etymology.sql'}, {output / 'etymology-report.txt'}")
 
 
@@ -332,8 +381,8 @@ def check(args):
     if integrity != "ok":
         raise AssertionError(f"integrity_check: {integrity}")
     count = db.execute("SELECT count(*) FROM word").fetchone()[0]
-    if not 100_000 <= count <= 250_000:
-        raise AssertionError(f"expected 100k–250k words, got {count}")
+    if not 100_000 <= count <= 350_000:
+        raise AssertionError(f"expected 100k–350k cards, got {count}")
     minimum, maximum = db.execute("SELECT min(prior),max(prior) FROM word").fetchone()
     if minimum < 0.2 or maximum > 0.8:
         raise AssertionError(f"prior out of range: [{minimum}, {maximum}]")

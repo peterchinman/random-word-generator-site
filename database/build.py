@@ -44,6 +44,8 @@ alone. The rules:
   Synonyms.  Per meaning, from Wiktionary's per-sense list, up to ten, minus the headword
   itself, duplicates and entries with broken link brackets. Entry-level synonym lists are
   ignored because Wiktionary attaches them to every etymology of a page.
+  Meanings and etymologies retain their source entry number so downstream cards
+  can pair each origin with the definitions under that origin.
 
   Pronunciation.  Every IPA transcription is kept with its accent tags. word.ipa is the
   one to display: General American or US first, then Received Pronunciation or UK, then
@@ -515,7 +517,7 @@ def flush_word(db, word, word_id, entries, pos_table, counts, ord_start):
     entries.sort(key=lambda e: (pos_table.rank(e["pos"]), e.get("etym_no", 0)))
     ord_ = ord_start
     seen = set()
-    for entry in entries:
+    for entry_no, entry in enumerate(entries, 1):
         senses = []
         for index, sense in enumerate(entry["senses"]):
             if LEAKED_GLOSS_RE.match(sense["gloss"]):
@@ -526,7 +528,7 @@ def flush_word(db, word, word_id, entries, pos_table, counts, ord_start):
             senses.append((kind != "definition", demoted, index, sense, kind, target))
         senses.sort(key=lambda s: s[:3])
         for _, demoted, _, sense, kind, target in senses:
-            key = (entry["pos"], sense["gloss"])
+            key = (entry_no, entry["pos"], sense["gloss"])
             if key in seen:
                 counts["senses dropped: duplicate within word"] += 1
                 continue
@@ -535,10 +537,10 @@ def flush_word(db, word, word_id, entries, pos_table, counts, ord_start):
             counts[f"meanings: kind {kind}"] += 1
             counts["meanings: demoted"] += demoted
             meaning_id = db.execute(
-                "INSERT INTO meaning (word_id, ord, pos, kind, target, definition, context, qualifier, tags, topics, demoted)"
-                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO meaning (word_id, entry_no, ord, pos, kind, target, definition, context, qualifier, tags, topics, demoted)"
+                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (
-                    word_id, ord_, entry["pos"], kind, target, sense["gloss"],
+                    word_id, entry_no, ord_, entry["pos"], kind, target, sense["gloss"],
                     " › ".join(sense["parents"]) if sense.get("parents") else None,
                     sense.get("qualifier"),
                     json.dumps(sense.get("tags", []) + sense.get("raw_tags", []), ensure_ascii=False),
@@ -557,19 +559,23 @@ def flush_word(db, word, word_id, entries, pos_table, counts, ord_start):
 
     pronunciations = {}
     etymologies = []
-    for entry in entries:
+    for entry_no, entry in enumerate(entries, 1):
         for sound in entry.get("sounds", []):
             if "ipa" in sound:
-                pronunciations.setdefault((sound["ipa"], json.dumps(sound.get("tags", []))), None)
-        if entry.get("etymology") and entry["etymology"] not in [text for _, _, text in etymologies]:
-            etymologies.append((entry["pos"], entry.get("etym_no"), entry["etymology"]))
+                pronunciations.setdefault(
+                    (entry_no, sound["ipa"], json.dumps(sound.get("tags", []))), None
+                )
+        if entry.get("etymology"):
+            etymologies.append((entry_no, entry["pos"], entry.get("etym_no"), entry["etymology"]))
     if pronunciations:
-        db.executemany("INSERT INTO pronunciation (word_id, ipa, tags) VALUES (?, ?, ?)",
-                       [(word_id, ipa, tags) for ipa, tags in pronunciations])
+        db.executemany("INSERT INTO pronunciation (word_id, entry_no, ipa, tags) VALUES (?, ?, ?, ?)",
+                       [(word_id, entry_no, ipa, tags)
+                        for entry_no, ipa, tags in pronunciations])
         counts["pronunciations"] += len(pronunciations)
     if etymologies:
-        db.executemany("INSERT INTO etymology (word_id, pos, etym_no, text) VALUES (?, ?, ?, ?)",
-                       [(word_id, pos, etym_no, text) for pos, etym_no, text in etymologies])
+        db.executemany("INSERT INTO etymology (word_id, entry_no, pos, etym_no, text) VALUES (?, ?, ?, ?, ?)",
+                       [(word_id, entry_no, pos, etym_no, text)
+                        for entry_no, pos, etym_no, text in etymologies])
         counts["etymologies"] += len(etymologies)
     return ord_
 
