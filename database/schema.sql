@@ -43,6 +43,7 @@ CREATE TABLE word (
 CREATE TABLE meaning (
    id INTEGER PRIMARY KEY,
    word_id INTEGER NOT NULL REFERENCES word(id),
+   entry_no INTEGER NOT NULL,     -- source entry within the word; pairs this sense with its etymology
    ord INTEGER NOT NULL,           -- display order within the word, from 1
    pos TEXT NOT NULL REFERENCES pos(code),
    kind TEXT NOT NULL,             -- definition | variant | synonym
@@ -71,6 +72,7 @@ CREATE TABLE synonym (
 CREATE TABLE pronunciation (
    id INTEGER PRIMARY KEY,
    word_id INTEGER NOT NULL REFERENCES word(id),
+   entry_no INTEGER NOT NULL,     -- source entry for a sense-specific display IPA
    ipa TEXT NOT NULL,
    tags TEXT NOT NULL              -- JSON array: accent labels such as US, Received-Pronunciation
 );
@@ -78,6 +80,7 @@ CREATE TABLE pronunciation (
 CREATE TABLE etymology (
    id INTEGER PRIMARY KEY,
    word_id INTEGER NOT NULL REFERENCES word(id),
+   entry_no INTEGER NOT NULL,     -- same source entry number as meaning.entry_no
    pos TEXT NOT NULL,
    etym_no INTEGER,                -- Wiktionary's "Etymology 1", "Etymology 2"... within the page
    text TEXT NOT NULL
