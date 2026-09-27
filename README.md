@@ -29,12 +29,13 @@ It writes ignored `database/etymology.db`, `database/etymology.sql`, and
 `database/etymology-report.txt`. The SQL file imports into Cloudflare D1. It keeps
 each distinct etymology when it is a story of at least 80 characters
 or mentions a source language/period or quoted gloss. Pure word-part formulas and
-short pointers are excluded. Each card uses a definition and IPA from its
-source entry. Every tier and word shape remains eligible. The report records
+short pointers are excluded. Each card uses a definition from its source
+entry and that entry's IPA when available, falling back to the headword IPA.
+Every tier and word shape remains eligible. The report records
 the card count and samples used to review the classifier and prior;
 the thresholds can be passed as `--story-min-length` and `--pointer-max-length`.
-Cold-start interest priors are clamped to `[0.2, 0.8]` so both Beta shape
-parameters are at least 1 with the feed's default prior strength of 5.
+Cold-start interest priors are clamped to `[0.2, 0.8]`; they order the fresh
+lane. Rated cards use their ratings with a separate flat prior.
 Publish these three files with the rebuilt `dictionary.db` under a new release
 tag, and update `database/RELEASE` before deriving so the metadata records it.
 

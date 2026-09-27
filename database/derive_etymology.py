@@ -354,7 +354,7 @@ def build(args):
         f"Tiers: {json.dumps(tiers, sort_keys=True)}",
         f"Shapes (overlapping): {json.dumps(shapes, sort_keys=True)}",
         f"Bands: {json.dumps(bands, sort_keys=True)}", "",
-        "Prior range: [0.2, 0.8] (K=5 gives both cold-start Beta shapes >= 1)", "",
+        "Prior range: [0.2, 0.8] (orders fresh cards only)", "",
     ]
     lines += sample_lines("25 random morph classifications", morph_sample.values)
     lines += sample_lines("25 random story entries under 40 characters", short_sample.values)
