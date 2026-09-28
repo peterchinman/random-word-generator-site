@@ -17,9 +17,13 @@ import time
 from collections import Counter
 from pathlib import Path
 
+from etymology_patterns import LANGUAGE_NAMES, MORPH_RE
+from etymology_rules import clean_display, provenance
+from etymology_selection import exclusion_reason
+
 HERE = Path(__file__).resolve().parent
 SCHEMA_VERSION = "2"
-CLASSIFIER_VERSION = "1"
+CLASSIFIER_VERSION = "4"
 SEED = 20260925
 SHAPES = (
     "multiword", "capitalized", "hyphenated", "apostrophe", "nonascii",
@@ -37,46 +41,6 @@ POINTER_STARTS = (
 )
 POINTER_RE = re.compile(r"^(?:" + "|".join(re.escape(s) for s in POINTER_STARTS) + r")\b", re.I)
 
-# Entire entry must be a construction formula. Spaces inside a part allow
-# "di- + keto acid"; a colon, semicolon, or second sentence makes it a story.
-PART = r"[\w‘’'\"“”()\-]+(?:\s+[\w‘’'\"“”()\-]+)*"
-MORPH_RE = re.compile(
-    rf"^(?:(?:From|Equivalent to|Formed from|Formed as)\s+)?"
-    rf"{PART}(?:\s*\+\s*{PART})+\??\.?(?:\s+See\s+[^.]+\.?)?$",
-    re.I | re.U,
-)
-
-# Source-language and historical-period names, not a general word-shape filter.
-# Names are matched as whole phrases. Proto-* names are handled separately.
-# Multi-word names must be preserved; the display list is intentionally explicit.
-LANGUAGE_NAMES = (
-    "Abkhaz", "Adyghe", "Afrikaans", "Albanian", "Amharic", "Ancient Egyptian",
-    "Ancient Greek", "Anglo-Norman", "Anglo-Saxon", "Arabic", "Aramaic",
-    "Armenian", "Assamese", "Avestan", "Azerbaijani", "Basque", "Belarusian",
-    "Bengali", "Berber", "Breton", "Bulgarian", "Burmese", "Catalan", "Cebuano",
-    "Chichewa", "Chinese", "Classical Chinese", "Classical Latin", "Coptic",
-    "Cornish", "Croatian", "Czech", "Danish", "Dutch", "Early Modern English",
-    "Egyptian", "English", "Esperanto", "Estonian", "Etruscan", "Faroese",
-    "Finnish", "Flemish", "French", "Frisian", "Galician", "Georgian",
-    "German", "Gothic", "Greek", "Gujarati", "Haitian Creole", "Hausa",
-    "Hawaiian", "Hebrew", "Hindi", "Hittite", "Hungarian", "Icelandic",
-    "Igbo", "Indonesian", "Irish", "Italian", "Japanese", "Javanese",
-    "Kannada", "Kazakh", "Khmer", "Korean", "Kurdish", "Latin", "Latvian",
-    "Lithuanian", "Low German", "Malay", "Malayalam", "Maltese", "Mandarin",
-    "Manchu", "Maori", "Marathi", "Medieval Latin", "Middle Chinese",
-    "Middle Dutch", "Middle English", "Middle French", "Middle High German",
-    "Middle Irish", "Middle Low German", "Middle Persian", "Mongolian",
-    "Nahuatl", "Navajo", "Nepali", "New Latin", "Norwegian", "Occitan",
-    "Old Church Slavonic", "Old English", "Old French", "Old High German",
-    "Old Irish", "Old Norse", "Old Persian", "Old Spanish", "Oriya",
-    "Ottoman Turkish", "Pali", "Pashto", "Persian", "Phoenician", "Polish",
-    "Portuguese", "Punjabi", "Quechua", "Romanian", "Russian", "Sanskrit",
-    "Scots", "Scottish Gaelic", "Serbo-Croatian", "Sinhala", "Slovak",
-    "Slovenian", "Somali", "Spanish", "Sumerian", "Swahili", "Swedish",
-    "Syriac", "Tagalog", "Tamil", "Tatar", "Telugu", "Teochew", "Thai",
-    "Tibetan", "Turkish", "Ukrainian", "Urdu", "Vietnamese", "Welsh",
-    "West Frisian", "Wolof", "Yiddish", "Yoruba", "Zulu",
-)
 LANGUAGE_RE = re.compile(
     r"(?<!\w)(?:" + "|".join(re.escape(s) for s in sorted(LANGUAGE_NAMES, key=len, reverse=True))
     + r"|Proto-[A-Za-z-]+)(?!\w)", re.I,
@@ -257,6 +221,9 @@ def build(args):
     db = sqlite3.connect(temp)
     db.executescript(CREATE_SQL)
     counts, tiers, shapes, bands = Counter(), Counter(), Counter(), Counter()
+    excluded_sample = Reservoir(25, SEED + 5)
+    cleanup_sample = Reservoir(25, SEED + 6)
+    selection_counts = Counter()
     morph_sample = Reservoir(25, SEED + 1)
     short_sample = Reservoir(25, SEED + 2)
     columns = {row[1] for row in source.execute("PRAGMA table_info(etymology)")}
@@ -299,11 +266,35 @@ def build(args):
             selected.append((etym_no, text, ipa, pos, definition, def_pos, score, has_signal))
         if not selected:
             continue
-        # The longest retained origin is the old card whenever that word was
-        # selected before; new headwords also get a readable primary ID.
+        # Choose the legacy primary from the original eligible texts, before
+        # cleanup/filtering. Never transfer its ID to a surviving sibling.
         legacy_key = max(selected, key=lambda item: len(item[1]))[:2]
-        for etym_no, text, ipa, pos, definition, def_pos, score, has_signal in selected:
-            kept.append((card_id(word["word"], etym_no, text, (etym_no, text) == legacy_key),
+        for etym_no, original, ipa, pos, definition, def_pos, score, has_signal in selected:
+            identity = card_id(word["word"], etym_no, original,
+                               (etym_no, original) == legacy_key)
+            text, removed = clean_display(original, word["word"])
+            if removed:
+                selection_counts["display_cleaned"] += 1
+                cleanup_sample.add((word["word"], text))
+            reason = provenance(text)
+            if reason:
+                selection_counts[reason] += 1
+                excluded_sample.add((word["word"], text))
+                continue
+            # Sidebar text must not inflate eligibility, bands, or fresh priority.
+            names, has_signal = signals(text)
+            kind = classify(text, args.pointer_max_length)
+            if kind != "story" or not (len(text) >= args.story_min_length or has_signal):
+                selection_counts["ineligible_after_cleanup"] += 1
+                continue
+            # POS belongs to this etymology's source entries, not the headword.
+            reason = exclusion_reason({"etymology": text, "pos": pos, "def_pos": def_pos})
+            if reason:
+                selection_counts[reason] += 1
+                excluded_sample.add((word["word"], text))
+                continue
+            score = prior(text, word["tier"], names)
+            kept.append((identity,
                          word["word"], etym_no, ipa, word["tier"], word["zipf"], shape,
                          pos, definition, def_pos, text, len(text), band(len(text)),
                          int(has_signal), score))
@@ -327,6 +318,7 @@ def build(args):
             "pointer_max_length": str(args.pointer_max_length),
             "classifier_version": CLASSIFIER_VERSION,
             "schema_version": SCHEMA_VERSION,
+            "selection_counts": json.dumps(selection_counts, sort_keys=True),
             "row_count": str(len(kept)),
             "tier_histogram": json.dumps(tiers, sort_keys=True),
             "shape_histogram": json.dumps(shapes, sort_keys=True),
@@ -350,12 +342,15 @@ def build(args):
         f"Thresholds: story_min_length={args.story_min_length}, pointer_max_length={args.pointer_max_length}",
         f"Classifier version: {CLASSIFIER_VERSION}",
         f"Elapsed seconds: {time.monotonic() - started:.1f}",
-        f"Classes: {json.dumps(counts, sort_keys=True)}",
+        f"Classes (original source): {json.dumps(counts, sort_keys=True)}",
+        f"Selection audit (original eligible cards): {json.dumps(selection_counts, sort_keys=True)}",
         f"Tiers: {json.dumps(tiers, sort_keys=True)}",
         f"Shapes (overlapping): {json.dumps(shapes, sort_keys=True)}",
         f"Bands: {json.dumps(bands, sort_keys=True)}", "",
         "Prior range: [0.2, 0.8] (orders fresh cards only)", "",
     ]
+    lines += sample_lines("25 random provenance exclusions", excluded_sample.values)
+    lines += sample_lines("25 random cleaned etymologies", cleanup_sample.values)
     lines += sample_lines("25 random morph classifications", morph_sample.values)
     lines += sample_lines("25 random story entries under 40 characters", short_sample.values)
     lines += sample_lines("20 random words from top prior decile", top.values)

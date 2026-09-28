@@ -29,15 +29,47 @@ It writes ignored `database/etymology.db`, `database/etymology.sql`, and
 `database/etymology-report.txt`. The SQL file imports into Cloudflare D1. It keeps
 each distinct etymology when it is a story of at least 80 characters
 or mentions a source language/period or quoted gloss. Pure word-part formulas and
-short pointers are excluded. Each card uses a definition from its source
+short pointers are excluded. Classifier v4 also excludes entries consisting only
+of source languages/forms, borrowing chains, unglossed comparisons/doublets,
+spelling variants, or equivalent formulas, with no explanation or source meaning.
+This includes learned borrowings, calques, language-only fragments, bare cross-
+references, singular-of pointers, romanizations, and noun/verb origin statements.
+Qualified origins (ultimately, possibly, via/through), spelling variants, formula
+alternatives, and Tibetan syllable separators are also recognized.
+For cards whose paired definition and all paired POS are proper nouns, quoted
+source meanings inside lexical parentheticals do not rescue an otherwise bare
+origin. Mixed proper/common-noun cards are protected. This rule classifies the
+full text; it never removes meanings from displayed text on surviving cards.
+Unknown syntax and explanations without quoted glosses (such as onomatopoeia)
+remain eligible. Marked PIE root sidebars and bounded etymology trees are removed
+before eligibility, length bands, and priority are calculated. Original source
+text determines card IDs; filtering a primary never reassigns its ID to another
+sense. Raw source text remains in `dictionary.db`.
+
+Each card uses a definition from its source
 entry and that entry's IPA when available, falling back to the headword IPA.
 Every tier and word shape remains eligible. The report records
-the card count and samples used to review the classifier and prior;
+the card count, exclusion/cleanup counts, and samples used to review the
+classifier and prior;
 the thresholds can be passed as `--story-min-length` and `--pointer-max-length`.
 Cold-start interest priors are clamped to `[0.2, 0.8]`; they order the fresh
 lane. Rated cards use their ratings with a separate flat prior.
 Publish these three files with the rebuilt `dictionary.db` under a new release
 tag, and update `database/RELEASE` before deriving so the metadata records it.
+
+Run the portable classifier, identity, sense-pairing, and SQL-export tests with:
+
+    python3 -m unittest discover -s database -p 'test_*.py' -v
+
+The first 30 editorial examples are in `database/etymology-examples.json`;
+the next 19 and their sense metadata are in `database/etymology-round-two-examples.json`,
+and the final 13 are in `database/etymology-round-three-examples.json`.
+Three accepted review rounds freeze a **100,537-card** local baseline; measurements
+and source checksum are recorded in `database/etymology-selection-audit.json`.
+Publishing updated source/derived assets remains a separate release step.
+Portable positive fixtures include both Bluffs, the laughter and garden senses
+of **haha**, and an explanatory place-name history. The builder records separate
+counts for each accepted exclusion rule.
 
 ## Where the words come from
 
