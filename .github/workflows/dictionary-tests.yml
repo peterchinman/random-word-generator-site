@@ -1,4 +1,4 @@
-name: Dictionary selection tests
+name: Dictionary source tests
 
 on:
   pull_request:
@@ -20,5 +20,5 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Test selection, sense pairing, cleanup, and SQL export
+      - name: Test source-entry and sense links
         run: python3 -m unittest discover -s database -p 'test_*.py' -v
