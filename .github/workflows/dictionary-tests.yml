@@ -1,0 +1,24 @@
+name: Dictionary source tests
+
+on:
+  pull_request:
+    paths:
+      - 'database/**'
+      - '.github/workflows/dictionary-tests.yml'
+  push:
+    branches: [master]
+    paths:
+      - 'database/**'
+      - '.github/workflows/dictionary-tests.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  dictionary-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test source-entry and sense links
+        run: python3 -m unittest discover -s database -p 'test_*.py' -v

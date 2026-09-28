@@ -1,14 +1,12 @@
-"""The derived cards keep each Wiktionary origin with its own sense."""
+"""The shared source preserves entry links for downstream consumers."""
 
 import sqlite3
 import tempfile
 import unittest
-from argparse import Namespace
 from collections import Counter
 from pathlib import Path
 
 import build
-import derive_etymology
 
 
 class MultiEtymologyTest(unittest.TestCase):
@@ -43,23 +41,26 @@ class MultiEtymologyTest(unittest.TestCase):
             source.commit()
             source.close()
 
-            derive_etymology.build(Namespace(
-                source=source_path, output_dir=root / "output",
-                pointer_max_length=70, story_min_length=80,
-            ))
-            with sqlite3.connect(root / "output" / "etymology.db") as cards:
-                rows = cards.execute(
-                    "SELECT id,etym_no,ipa,pos,definition,etymology FROM word ORDER BY etym_no"
+            with sqlite3.connect(source_path) as db:
+                rows = db.execute(
+                    "SELECT e.etym_no,e.text,m.definition,p.ipa FROM etymology e "
+                    "JOIN meaning m ON m.word_id=e.word_id AND m.entry_no=e.entry_no "
+                    "LEFT JOIN pronunciation p ON p.word_id=e.word_id AND p.entry_no=e.entry_no "
+                    "ORDER BY e.etym_no,m.ord"
                 ).fetchall()
-            self.assertEqual(len(rows), 2)
-            self.assertEqual(rows[0][0], "bluff")
-            self.assertEqual(rows[0][2], "/blʌf/")
-            self.assertEqual(rows[0][3], '["noun", "verb"]')
-            self.assertIn("bluffing", rows[0][4])
-            self.assertEqual(rows[1][1], 2)
-            self.assertEqual(rows[1][2], "/blɐf/")
-            self.assertIn("steep bank", rows[1][4])
-            self.assertIn("Middle Low German", rows[1][5])
+            self.assertEqual(len(rows), 3)
+            first = [row for row in rows if row[0] == 1]
+            second = [row for row in rows if row[0] == 2]
+            self.assertEqual(len(first), 2)
+            self.assertTrue(all(row[1] == pretending for row in first))
+            self.assertIn("bluffing", first[0][2])
+            self.assertEqual(first[0][3], "/blʌf/")
+            self.assertIn("deceive", first[1][2])
+            self.assertEqual(len(second), 1)
+            self.assertIn("Middle Low German", second[0][1])
+            self.assertIn("steep bank", second[0][2])
+            self.assertEqual(second[0][3], "/blɐf/")
+
 
 
 if __name__ == "__main__":

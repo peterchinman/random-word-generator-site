@@ -11,33 +11,28 @@ Source for [randomwordgenerator.info](https://randomwordgenerator.info): an Astr
 - `database/dictionary.db` is the SQLite dictionary the API reads. It is a build artifact published as a GitHub release asset, and the deploy fetches the release named in `database/RELEASE`. `database/schema.sql` describes its tables.
 - `database/` also holds the build stages (`extract.py`, `score.py`, `books.py`, `build.py`), `check_examples.py`, their committed scoring outputs `zipf.tsv.gz` and `books.tsv.gz`, and `build-report.txt`.
 
-## Deriving the Etymology Feed dictionary
+## Shared dictionary and downstream consumers
 
-The companion Etymology Feed uses a smaller, read-only dictionary derived from
-`database/dictionary.db`. The source database must be built with the current
-`build.py`, which records the source entry on meanings, pronunciations, and
-etymologies. The `dictionary-2026-09-20b` asset predates those links and cannot
-produce correctly paired secondary cards. Rebuild from its archived
-`database/build/extract.jsonl.gz` if available, or create a new extract and a
-new release. Then run the standard-library script:
+This repository owns the full dictionary: Wiktionary extraction, frequency
+scoring, the source schema, and `dictionary.db` releases. `build.py` preserves
+entry numbers on meanings, pronunciations, and etymologies so downstream
+consumers can pair each origin with its own senses. Source entries are not
+filtered using Etymology Feed's editorial rules.
 
-    python3 database/build.py
-    python3 database/derive_etymology.py
-    python3 database/derive_etymology.py --check
+[Etymology Feed](https://github.com/peterchinman/etymology-feed/tree/main/database)
+owns its `derive_etymology.py`, selection rules, display cleanup, card identities,
+ranking, tests, and derived `etymology.db`/SQL releases. It pins a full-dictionary
+release and checksum independently. The former feed builder in this repository
+has moved there; historical release assets remain available.
 
-It writes ignored `database/etymology.db`, `database/etymology.sql`, and
-`database/etymology-report.txt`. The SQL file imports into Cloudflare D1. It keeps
-each distinct etymology when it is a story of at least 80 characters
-or mentions a source language/period or quoted gloss. Pure word-part formulas and
-short pointers are excluded. Each card uses a definition from its source
-entry and that entry's IPA when available, falling back to the headword IPA.
-Every tier and word shape remains eligible. The report records
-the card count and samples used to review the classifier and prior;
-the thresholds can be passed as `--story-min-length` and `--pointer-max-length`.
-Cold-start interest priors are clamped to `[0.2, 0.8]`; they order the fresh
-lane. Rated cards use their ratings with a separate flat prior.
-Publish these three files with the rebuilt `dictionary.db` under a new release
-tag, and update `database/RELEASE` before deriving so the metadata records it.
+The `dictionary-2026-09-20b` release predates entry links. Publish a rebuilt full
+`dictionary.db` under a new RWG release tag before the feed pins a published
+source. The reviewed local source has not yet been published. RWG's own release
+pin and website deployment are unchanged by moving the consumer pipeline.
+
+Run the source-entry contract regression with:
+
+    python3 -m unittest discover -s database -p 'test_*.py' -v
 
 ## Where the words come from
 
